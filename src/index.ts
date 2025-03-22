@@ -7,7 +7,8 @@ import { initializeDB } from './config/connectPgDB';
 import { errorHandler, notFound, validateUUIDParam } from './middleware/httpErorrs';
 
 
-import authRouter  from "./routes/authRoutes";
+import authRoutes  from "./routes/authRoutes";
+import userRoutes from './routes/userRoutes'
 dotenv.config();
 
 const app = express();
@@ -18,7 +19,8 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 
 // api's:
-app.use("/api/auth" , authRouter );
+app.use("/api/auth" , authRoutes );
+app.use("/api/user",userRoutes)
 
 app.use(notFound);
 app.use(errorHandler);

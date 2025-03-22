@@ -28,7 +28,14 @@ const generateToken = async (userid: string) => {
 };
 
 const verifyToken = (token: string) => {
-    return jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        
+    } catch (error :any) {
+        console.error("Token verification failed:", error.message);
+        return null;
+
+    }
 };
 
 export { generateToken, verifyToken };

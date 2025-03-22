@@ -1,33 +1,49 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from 'jsonwebtoken';
 import { verifyToken } from "../lib/utils/generateToken";
-
-
 
 export const IsAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
-        const token = req.cookies.authToken || req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: 'No token provided' });
-        }
-        const user = verifyToken(token);
-        (req as any).user = user;
+        const authHeader = req.headers.authorization;
+        const token = req.cookies?.authToken || (authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
 
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" }); // ✅ أضف return
+        }
+
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.status(401).json({ message: "Invalid or expired token" }); // ✅ أضف return
+        }
+
+        (req as any).user = decoded;
+        // console.log((req as any).user);
         next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Invalid token' });
+    } catch (error: any) {
+        console.error("Authentication error:", error.message);
+        return res.status(401).json({ message: "Invalid or expired token" }); // ✅ أضف return
     }
 };
 
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    IsAuthenticated(req, res, () => {
-        if ((req as any).user.payload.userId === req.params.id || (req as any).user.payload.role === "admin") {
-            next();
-        } else {
-            return res.status(403).json({ message: 'You are not allowed' });
-        }
-    })
+    try {
+        await IsAuthenticated(req, res, async () => {
+            const user = (req as any).user;
+
+            if (!user || !user.userId) {
+                return res.status(403).json({ message: "User data missing" }); // ✅ أضف return
+            }
+
+            if (user.userId === req.params.id || user.role === "admin") {
+                return next(); // ✅ أضف return
+            }
+
+            return res.status(403).json({ message: "You are not allowed" }); // ✅ أضف return
+        });
+    } catch (error: any) {
+        console.error("Authorization error:", error.message);
+        return res.status(500).json({ message: "Internal server error" }); // ✅ أضف return
+    }
 };
 
 
