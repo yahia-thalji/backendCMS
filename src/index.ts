@@ -22,7 +22,7 @@ app.use("/api/auth" , authRouter );
 
 app.use(notFound);
 app.use(errorHandler);
-// app.use(validateUUIDParam);
+app.use(validateUUIDParam);
 
 app.listen(port,async()=>{
     console.log(`Server is running on http://${IP}:${port}`);

@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { User } from "../entities/user";
 import bcrypt from "bcrypt"
 import { Role } from "../entities/role";
+import { generateToken } from "../lib/utils/generateToken";
 
 
 export const signup: RequestHandler = async (req, res): Promise<any> => {
@@ -74,6 +75,13 @@ export const login :RequestHandler = async (req , res ) :Promise<any> => {
         if(!passwordMatch){
             return res.status(400).json({error:"Please provide an email and password"});
         }
+        const token = await generateToken(user.UserID);
+        res.cookie("authToken" , token , {
+                maxAge:15*24*60*60*1000,
+                httpOnly:true ,
+                sameSite:"strict" ,
+                secure: process.env.NODE_ENV !== "development"
+            })
 
         return res.status(201).json({meesage:"welcome in C.P system"});
     } catch (error:any) {
@@ -83,12 +91,13 @@ export const login :RequestHandler = async (req , res ) :Promise<any> => {
 }
 
 
-// export const logout = async (req:Request , res : Response) => {
-//     try {
-        
-//     } catch (error:any) {
-//         console.log("Error in logout controller", error.message);
-//         res.status(500).json({error: "Internal server error"});
-//     }
-// }
+export const logout :RequestHandler = async (req , res ) :Promise<any> => {
+    try {
+        res.cookie("authToken","" , {maxAge:0});
+        res.status(200).json({message : "Logged Out Successfully"});
+    } catch (error:any) {
+        console.log("Error in logout controller", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
 

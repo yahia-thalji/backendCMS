@@ -1,18 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken';
-// import { verifyToken } from "../utils/jwt-config";
+import { verifyToken } from "../lib/utils/generateToken";
 
 
 
-export const IsAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
-
+export const IsAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         const token = req.cookies.authToken || req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ message: 'No token provided' });
         }
-        // const user = verifyToken(token);
-        // (req as any).user = user;
+        const user = verifyToken(token);
+        (req as any).user = user;
 
         next();
     } catch (error) {
@@ -21,7 +20,7 @@ export const IsAuthenticated = async (req: Request, res: Response, next: NextFun
 };
 
 
-export const isAuthorized = async (req: Request, res: Response, next: NextFunction) => {
+export const isAuthorized = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     IsAuthenticated(req, res, () => {
         if ((req as any).user.payload.userId === req.params.id || (req as any).user.payload.role === "admin") {
             next();
