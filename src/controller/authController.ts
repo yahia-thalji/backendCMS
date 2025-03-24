@@ -77,13 +77,19 @@ export const login :RequestHandler = async (req , res ) :Promise<any> => {
         }
         const token = await generateToken(user.UserID);
         res.cookie("authToken" , token , {
-                maxAge:15*24*60*60*1000,
+                maxAge: 15 * 24 * 60 * 60 * 1000,
                 httpOnly:true ,
                 sameSite:"strict" ,
-                secure: process.env.NODE_ENV !== "development"
+                secure: false,
             })
 
-        return res.status(201).json({meesage:"welcome in C.P system"});
+         res.status(201).json({
+            userId: user.UserID,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            token :token
+         });
     } catch (error:any) {
         console.log("Error in login controller", error.message);
         res.status(500).json({error: "Internal server error"});
@@ -93,10 +99,24 @@ export const login :RequestHandler = async (req , res ) :Promise<any> => {
 
 export const logout :RequestHandler = async (req , res ) :Promise<any> => {
     try {
-        res.cookie("authToken","" , {maxAge:0});
+        res.cookie("authToken","" , {
+            httpOnly:true,
+            expires: new Date(0),
+        });
         res.status(200).json({message : "Logged Out Successfully"});
     } catch (error:any) {
         console.log("Error in logout controller", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
+
+export const getMe :RequestHandler = async (req , res ) :Promise<any> => {
+    try {
+        const user = (req as any).user;
+        const users = await User.findOne({where:{UserID:user.userId} ,relations:["Role"]})
+        res.status(200).json(users);
+    } catch (error:any) {
+        console.log("Error in getMe controller", error.message);
         res.status(500).json({error: "Internal server error"});
     }
 }

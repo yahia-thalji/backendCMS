@@ -16,8 +16,8 @@ export class Cart extends BaseEntity {
   @Column({ type: 'decimal' })
   quantity: number;
 
-  @Column({ type: 'enum', enum: ['accept', 'rejected', 'pending'] })
-  status: 'accept' | 'rejected' | 'pending';
+  @Column({ type: 'enum', enum: ['accept', 'rejected', 'pending','inCart'] ,default:'inCart'},)
+  status: 'accept' | 'rejected' | 'pending' | 'inCart';
 
   @ManyToOne(()=>User, (user)=>user.cart)
   user:User;

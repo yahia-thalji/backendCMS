@@ -4,7 +4,7 @@ import { getUserProfile, updateUser } from '../controller/userController';
 
 const router = express.Router();
 
-router.get("/profile/:id" ,isAuthorized, getUserProfile);
+router.get("/profile/:id" , getUserProfile);
 router.post("/update" , isAuthorized,updateUser);
 
 

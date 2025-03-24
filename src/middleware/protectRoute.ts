@@ -29,7 +29,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     try {
         await IsAuthenticated(req, res, async () => {
             const user = (req as any).user;
-
+            console.log(user);
             if (!user || !user.userId) {
                 return res.status(403).json({ message: "User data missing" }); // ✅ أضف return
             }

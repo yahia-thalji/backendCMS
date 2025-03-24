@@ -21,7 +21,7 @@ const generateToken = async (userid: string) => {
             role: user.Role.roleName,
         },
         process.env.JWT_SECRET || 'secret',
-        { expiresIn: '12h' }
+        { expiresIn: '1d' }
     );
 
     

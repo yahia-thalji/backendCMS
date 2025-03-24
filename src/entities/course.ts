@@ -33,6 +33,9 @@ export class Course extends BaseEntity {
   @Column({ type: 'enum', enum: ['open', 'close'], default: 'close' })
   status: 'open' | 'close';
 
+  @Column({ type: 'varchar' })
+  meetingLink:string;
+
   @OneToMany(() => Enrollments, enrollments => enrollments.course)
   enrollments: Enrollments[];
 

@@ -13,8 +13,7 @@ export class Assignment extends BaseEntity {
   @Column({ type: "varchar" })
   subject: string;
 
-  @Column({ type: "enum", enum: ['pass', 'fill'] })
-  status: 'pass' | 'fill';
+  
 
   @OneToMany(() => Assignmentsubmition, assignmentsubmition => assignmentsubmition.assignment)
   assignmentsubmition: Assignmentsubmition[];
