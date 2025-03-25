@@ -62,6 +62,9 @@ export const getAll:RequestHandler = async(req ,res):Promise<any> =>{
         if(!getAll){
             return res.status(400).json({message:"Not Found Any Category"});
         }
+        if(getAll.length===0){
+           return res.status(200).json({message:"No Any Category In Repository"});
+        }
         return res.status(200).json(getAll);
     } catch (error :any) {
         console.log("Error in updateCategory controller", error.message);
