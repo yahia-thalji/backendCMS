@@ -9,6 +9,7 @@ router.delete("delete/:productId",);
 
 //get single product
 router.get('/:ProductId', );
+router.get("/categoryWithProduct");
 
 router.get("/getAllProducts",);
 

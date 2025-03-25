@@ -56,8 +56,9 @@ export const signup: RequestHandler = async (req, res): Promise<any> => {
         //notification to send welcome for new user
 
         return res.status(201).json({ message: "User registered successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Internal server error" });
+    } catch (error:any) {
+        console.log("Error in signup controller", error.message);
+        res.status(500).json({error: "Internal server error"});
     }
 };
 

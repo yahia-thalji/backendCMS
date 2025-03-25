@@ -7,7 +7,7 @@ export class Category extends BaseEntity {
   @PrimaryGeneratedColumn()
   categoryId: number;
 
-  @Column('varchar')
+  @Column({type:'varchar' ,unique:true})
   @Index()  // This ensures 'name' is indexed
   name: string;
 
