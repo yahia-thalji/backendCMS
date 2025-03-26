@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Category } from './category';
 import { Cart } from './cart';
 import { Resources } from './resources';
@@ -14,6 +14,9 @@ export class Product extends BaseEntity {
 
   @Column({ type: "varchar", nullable: false })
   description: string;
+
+  @Column('int')
+  quantity: number;
 
   @Column({ type: "decimal", nullable: false })
   price: number;
@@ -47,9 +50,25 @@ export class Product extends BaseEntity {
   })
   review: Reviews[];
 
+  @Column('int', { default: 0 })
+  AvgRating: number;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkStatus = () => {
+    if (this.quantity == 0) {
+      this.status = 'out of stock';
+    } else if (this.quantity < 10) {
+      this.status = 'running low';
+    } else {
+      this.status = 'in stock';
+    }
+  }
 }

@@ -1,8 +1,9 @@
 import express from 'express'
+import { createProduct } from '../controller/productController';
 
 const router = express.Router();
 
-router.post("/createProduct",);
+router.post("/createProduct",createProduct);
 
 router.post("/update/:productId",);
 router.delete("delete/:productId",);
