@@ -1,6 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './user';
 import { Product } from './product';
+import { CartItem } from './cartItem';
 
 @Entity({ name: "Cart" })
 export class Cart extends BaseEntity {
@@ -13,18 +14,18 @@ export class Cart extends BaseEntity {
   @Column({ type: "decimal" })
   orderDiscountPrice: number;
 
-  @Column({ type: 'decimal' })
-  quantity: number;
-
-  @Column({ type: 'enum', enum: ['accept', 'rejected', 'pending','inCart'] ,default:'inCart'},)
-  status: 'accept' | 'rejected' | 'pending' | 'inCart';
+  @Column({ type: 'enum', enum: ['accept', 'rejected', 'pending'] ,default:'pending'},)
+  status: 'accept' | 'rejected' | 'pending';
 
   @ManyToOne(()=>User, (user)=>user.cart)
   user:User;
   
-  @ManyToOne(() => Product, (product) => product.cart, { eager: true })
-  product: Product;
+  @OneToMany(() => Product, (product) => product.cart, { eager: true })
+  product: Product[];
   
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
+  items: CartItem[];
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

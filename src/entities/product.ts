@@ -3,6 +3,7 @@ import { Category } from './category';
 import { Cart } from './cart';
 import { Resources } from './resources';
 import { Reviews } from './reviews';
+import { CartItem } from './cartItem';
 
 @Entity({ name: "Product" })
 export class Product extends BaseEntity {
@@ -30,8 +31,11 @@ export class Product extends BaseEntity {
   @ManyToOne(() => Category, (category) => category.product)
   category: Category;
 
-  @OneToMany(() => Cart, (cart) => cart.product )
-  cart: Cart[];
+  @ManyToOne(() => Cart, (cart) => cart.product )
+  cart: Cart;
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.product, { eager: true ,  onDelete: 'CASCADE'})
+  cartItems: CartItem[];
 
   @OneToMany(() => Resources, (resources) => resources.product, { eager: true })
   resources: Resources[];

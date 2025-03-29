@@ -31,18 +31,18 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
             const user = (req as any).user;
             console.log(user);
             if (!user || !user.userId) {
-                return res.status(403).json({ message: "User data missing" }); // ✅ أضف return
+                return res.status(403).json({ message: "User data missing" });
             }
 
             if (user.userId === req.params.id || user.role === "admin") {
-                return next(); // ✅ أضف return
+                return next();
             }
 
-            return res.status(403).json({ message: "You are not allowed" }); // ✅ أضف return
+            return res.status(403).json({ message: "You are not allowed" });
         });
     } catch (error: any) {
         console.error("Authorization error:", error.message);
-        return res.status(500).json({ message: "Internal server error" }); // ✅ أضف return
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 

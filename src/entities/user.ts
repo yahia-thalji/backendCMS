@@ -18,6 +18,7 @@ import { Cart } from "./cart";
 import { Notification } from "./notification";
 import { Reviews } from "./reviews";
 import { Resources } from "./resources";
+import { CartItem } from "./cartItem";
 
 @Entity({ name: "User" })
 export class User extends BaseEntity {
@@ -68,6 +69,8 @@ export class User extends BaseEntity {
     @OneToMany(()=>Cart , (cart)=>cart.user)
     cart:Cart[];
 
+    @OneToMany(()=>CartItem ,(cartItem)=>cartItem.user)
+    cartItems:CartItem[];
     //notification
     @OneToMany(() => Notification, notification => notification.from)  
     sentNotifications: Notification[];
