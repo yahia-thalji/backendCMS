@@ -1,14 +1,14 @@
 import express from 'express'
-import { getAllCourses } from '../controller/courseController';
+import { createCourse, deleteCourse, getAllCourses, getCourse, updateCourse } from '../controller/courseController';
 
 const router =express.Router();
 
-router.post("/create");
-router.post("/update/:courseId");
-router.delete("/delete/:courseId");
+router.post("/create",createCourse);
+router.post("/update/:courseId",updateCourse);
+router.delete("/delete/:courseId",deleteCourse);
 
 // get course by id
-router.get("/:courseId");
+router.get("/:courseId",getCourse);
 //get all courses
 router.get("/getAllCourses",getAllCourses);
 // enrollment

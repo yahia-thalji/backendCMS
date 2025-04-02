@@ -27,10 +27,10 @@ export class Course extends BaseEntity {
   @Column({ type: 'decimal' })
   price: number;
   
-  @Column({ type: 'decimal' })
+  @Column({ type: 'decimal' ,nullable:true})
   newPrice: number;
 
-  @Column({ type: 'enum', enum: ['open', 'close'], default: 'close' })
+  @Column({ type: 'enum', enum: ['open', 'close']})
   status: 'open' | 'close';
 
   @Column({ type: 'varchar' })
