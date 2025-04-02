@@ -24,11 +24,11 @@ export const addToCart: RequestHandler = async (req, res): Promise<any> => {
 
         // Check if the product has already been added to the cart for the same user
         const existingCartItem = await CartItem.findOne({
-            where: { product: { productId: productId }, user: { UserID: UserID } },
+            where: { product: { productId: productId },status:"inCart", user: { UserID: UserID } },
             relations: ["product", "user"]
         });
-        
-        if (existingCartItem) {
+        console.log(existingCartItem?.status);
+        if (existingCartItem?.status=="inCart") {
             return res.status(400).json({ message: "The product is already exist in the cart" });
         }
 
@@ -137,75 +137,144 @@ export const getItemsCart: RequestHandler = async (req, res): Promise<any> => {
   };
 
 
+export const changeQuantity:RequestHandler = async (req , res):Promise<any> => {
+  try {
+    const user = (req as any).user;
+    const UserID: any = user.userId;
 
-// export const checkout: RequestHandler = async (req, res): Promise<any> => {
-//     try {
-//         const user = (req as any).user;
-//         const UserID: any = user.userId;
+    const userIsExist = await User.findOneBy({ UserID });
+    if (!userIsExist) {
+        return res.status(400).json({ message: "User not found" });
+    }
 
-//         // Find the user's cart that contains products in inCart status
-//         const cart = await Cart.findOne({ 
-//             where: { user: { UserID }, status: "inCart" }, 
-//             relations: ["user", "cartItems"] // ✅ Add cartItems
-//         });
+    const {itemId ,quantity} = req.body;
+    console.log("itemId",itemId);
+    console.log("quantity",quantity);
+    const item = await CartItem.findOne({where:{id:itemId}});
+    if(!item){
+      return res.status(404).json({message:"Not Found Item"});
+    }
+    console.log("itemId",itemId);
+    console.log("\n");
+    console.log("quantity",quantity);
+    item.quantity =quantity;
+    await item.save();
+    return res.status(200).json({message:"updated successfully"})
+  } catch (error: any) {
+    console.error("Error in changeQuantity controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
 
-//         if (!cart) {
-//             return res.status(400).json({ message: "No items in cart to checkout" });
-//         }
+export const checkout: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const user = (req as any).user;
+    const UserID: any = user.userId;
 
-//         if (cart.items.length === 0) { // ✅ Make sure the basket is not empty
-//             return res.status(400).json({ message: "Cart is empty" });
-//         }
+    const userIsExist = await User.findOne({ where: { UserID: UserID } });
+    if (!userIsExist) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-//        // Update the request status to pending
-//         cart.status = "pending";
-//         await cart.save();
+    const cartItems = await CartItem.find({
+      where: { user: { UserID }, status: "inCart" },
+      relations: ["user", "product"], 
+    });
 
-//         return res.status(200).json({ message: "Checkout successful", cart });
+    if (cartItems.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
 
-//     } catch (error: any) {
-//         console.error("Error in checkout controller", error.message);
-//         return res.status(500).json({ error: "Internal server error" });
-//     }
-// };
+    for (const item of cartItems) {
+      item.status = "pending";
+      await item.save();
+    }
+
+    const products = cartItems.map(item => item.product);
+
+    const newCart = Cart.create({
+      user: userIsExist,
+      items: cartItems,
+      product: products,
+      orderTotalPrice: cartItems.reduce((total, item) => total + Number(item.product.price) * item.quantity, 0),
+      orderDiscountPrice: cartItems.reduce((total, item) => total + Number(item.product.newPrice) * item.quantity, 0),
+    });
+
+    await newCart.save();
+
+    return res.status(200).json({ message: "Purchased successfully", cart: newCart });
+
+  } catch (error: any) {
+    console.error("Error in checkout controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 
-// export const updateOrderStatus: RequestHandler = async (req, res): Promise<any> => {
-//     try {
-//         const { cartId, status } = req.body;
+export const updateOrderStatus: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const { itemId, status } = req.body;
 
-//         if (!["accept", "rejected"].includes(status)) {
-//             return res.status(400).json({ message: "Invalid status value" });
-//         }
+    if (!["accept", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
 
-//         const cart = await Cart.findOne({ where: { cartId }, relations: ["cartItems", "cartItems.product"] });
+    const item = await CartItem.findOne({where:{id:itemId} , relations:['product']});
 
-//         if (!cart) {
-//             return res.status(404).json({ message: "Cart not found" });
-//         }
+    // const cart = await Cart.findOne({
+    //   where: {cartId:cartId},
+    //   relations: ["items", "items.product"],
+    // });
 
-//         if (cart.status !== "pending") {
-//             return res.status(400).json({ message: "Order is not in pending status" });
-//         }
+    if (!item) {
+      return res.status(404).json({ message: "No Item" });
+    }
 
-//         cart.status = status;
+    if (item.status === "accept" || item.status === "rejected") {
+      return res.status(400).json({ message: `This order has already been ${item.status}.` });
+    }
 
-//         if (status === "accept") {
-//             for (const cartItem of cart.items) {
-//                 if (cartItem.product.quantity < cartItem.quantity) {
-//                     return res.status(400).json({ message: `Not enough stock for ${cartItem.product.name}` });
-//                 }
-//                 cartItem.product.quantity -= cartItem.quantity;
-//                 await Product.save(cartItem.product);
-//             }
-//         }
+    if (status === "rejected") {
+      item.status = "rejected";
+      await item.save(); 
+      return res.status(200).json({ message: "We are sorry, your order has been rejected." });
+    }
 
-//         await cart.save();
+      item.status = "accept";
 
-//         return res.status(200).json({ message: `Order status updated to ${status}`, cart });
+      if (item.product.quantity < item.quantity) {
+        return res.status(400).json({ message: `Not enough stock for ${item.product.name}` });
+      }
+      item.product.quantity -= item.quantity;
+      await item.product.save();
+    
 
-//     } catch (error: any) {
-//         console.error("Error in updateOrderStatus controller", error.message);
-//         return res.status(500).json({ error: "Internal server error" });
-//     }
-// };
+    await item.save();
+
+
+    return res.status(200).json({ message: "Order has been accepted successfully!" });
+
+  } catch (error: any) {
+    console.error("Error in updateOrderStatus controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+export const getAllOrders: RequestHandler = async (req, res): Promise<any> => {
+  try {
+
+    const orders = await Cart.find({relations:['user']});
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "Not Found Any Order Yet" });
+    }
+
+    return res.status(200).json(orders);
+  } catch (error: any) {
+    console.error("Error in getOrders controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+

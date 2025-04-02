@@ -114,7 +114,7 @@ export const logout :RequestHandler = async (req , res ) :Promise<any> => {
 export const getMe :RequestHandler = async (req , res ) :Promise<any> => {
     try {
         const user = (req as any).user;
-        const users = await User.findOne({where:{UserID:user.userId} ,relations:["Role"]})
+        const users = await User.findOne({where:{UserID:user.userId} ,relations:["Role","UserProfilePicture"]})
         res.status(200).json(users);
     } catch (error:any) {
         console.log("Error in getMe controller", error.message);

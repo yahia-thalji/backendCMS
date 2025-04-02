@@ -1,14 +1,9 @@
 import multer from 'multer';
 import path from 'path';
 
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    try {
-      cb(null, 'resources/');
-    } catch (error) {
-      cb(new Error('Failed to set or find destination'), '');
-    }
-  },
+  destination: path.resolve('resources/'),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, `${uniqueSuffix}-${file.originalname}`);

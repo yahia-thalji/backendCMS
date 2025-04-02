@@ -19,8 +19,8 @@ export class CartItem extends BaseEntity {
   @Column({ type: "int", default: 1 })
   quantity: number;
 
-  @Column({ type: 'enum', enum: [ 'pending','inCart'] ,default:'inCart'},)
-  status: 'pending' | 'inCart';
+  @Column({ type: 'enum', enum: [ 'inCart','pending','accept' ,'rejected'] ,default:'inCart'},)
+  status: 'pending' | 'inCart' | 'accept' |'rejected' ;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt:Date;

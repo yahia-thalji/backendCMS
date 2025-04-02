@@ -1,9 +1,10 @@
 import express from 'express'
 import { categoryIdWithAllProducts, categoryWithProduct, createProduct, deleteProduct, getAllProducts, getProduct, updateProduct } from '../controller/productController';
+import { uploadFields } from '../middleware/multerMiddleware';
 
 const router = express.Router();
 
-router.post("/createProduct",createProduct);
+router.post("/createProduct",uploadFields,createProduct);
 
 router.post("/update/:productId",updateProduct);
 router.delete("/delete/:productId",deleteProduct);

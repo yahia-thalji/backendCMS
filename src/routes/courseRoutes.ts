@@ -1,4 +1,5 @@
 import express from 'express'
+import { getAllCourses } from '../controller/courseController';
 
 const router =express.Router();
 
@@ -9,7 +10,7 @@ router.delete("/delete/:courseId");
 // get course by id
 router.get("/:courseId");
 //get all courses
-router.get("/getAllCourses");
+router.get("/getAllCourses",getAllCourses);
 // enrollment
 router.post("/subscribeCourse/:courseId");
 // للموافقة رفض الاشتراك

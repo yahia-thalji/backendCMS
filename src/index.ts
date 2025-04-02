@@ -5,7 +5,9 @@ import cookieParser from 'cookie-parser';
 import cors from "cors";
 import session from 'express-session';
 
-import ip from 'ip'
+import ip from 'ip';
+import path from 'path';
+
 import { initializeDB } from './config/connectPgDB';   
 import { errorHandler, notFound, validateUUIDParam } from './middleware/httpErorrs';
 
@@ -36,6 +38,8 @@ app.use(session({
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
 }));
+// app.use('/resources', express.static(path.join(__dirname, 'resources')));
+app.use('/resources', express.static(path.join(__dirname, '../resources')));
 
 // api's:
 app.use("/api/auth" , authRoutes );

@@ -1,10 +1,11 @@
 import { RequestHandler } from "express";
 import { User } from "../entities/user";
+import { Resources } from "../entities/resources";
 
 export const getUserProfile :RequestHandler = async (req , res): Promise<any> => {
     const userId: any = req.params.id;
     try {
-        const user = await User.findOne({where:{UserID:userId}});
+        const user = await User.findOne({where:{UserID:userId},relations:['UserProfilePicture']});
         if(!user){
             return res.status(400).json({message : "User Not Found."});
         }
@@ -18,7 +19,8 @@ export const getUserProfile :RequestHandler = async (req , res): Promise<any> =>
 
 export const updateUser: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const userId = (req as any).user.payload.userId;
+        const userId: any = req.params.id;
+        console.log("userid",userId);
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
         }
@@ -32,7 +34,7 @@ export const updateUser: RequestHandler = async (req, res): Promise<any> => {
             return res.status(400).json({ message: "Request body is missing" });
         }
 
-        const { firstName, lastName, email, phoneNumber, address, gender, dateOfBirth, profilePicture } = req.body;
+        const { firstName, lastName, email, phoneNumber, address, gender, dateOfBirth } = req.body;
 
         if (email && email !== user.email) {
             const existingUser = await User.findOne({ where: { email } });
@@ -49,8 +51,24 @@ export const updateUser: RequestHandler = async (req, res): Promise<any> => {
         if (gender) user.gender = gender;
         if (dateOfBirth) user.dateOfBirth = dateOfBirth;
         
-        if (profilePicture) {
-            user.UserProfilePicture = profilePicture; 
+console.log(req.file);
+        if (req.file) {
+            const resource = await Resources.findOne({ where: { user: { UserID: user.UserID } } });
+            if (resource) {
+                resource.filePath = req.file.path;
+                resource.fileType = req.file.mimetype;
+                resource.entityName = req.file.filename;
+                await Resources.save(resource);
+                user.UserProfilePicture = resource;
+            } else {
+                const newResource = new Resources();
+                newResource.filePath = req.file.path;
+                newResource.fileType = req.file.mimetype;
+                newResource.entityName = req.file.filename;
+                newResource.user = user;
+                await Resources.save(newResource);
+                user.UserProfilePicture = newResource;
+            }
         }
 
         await user.save();

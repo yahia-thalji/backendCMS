@@ -2,6 +2,7 @@ import {RequestHandler} from 'express'
 import { Product } from '../entities/product';
 import { Category } from '../entities/category';
 import { ProgramUpdateLevel } from 'typescript/lib/typescript';
+import { Resources } from '../entities/resources';
 
 export const createProduct:RequestHandler = async (req,res):Promise<any> => {
     try {
@@ -15,6 +16,14 @@ export const createProduct:RequestHandler = async (req,res):Promise<any> => {
         }
         if(quantity <0){
             return res.status(400).json({message:"quantity must be positive number"})
+        }
+
+        // Safely access req.files and handle cases where it might be undefined
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+        const images = files?.['images'] ?? [];
+        // Check if both arrays are empty
+        if (images.length === 0) {
+            return res.status(400).send({ message: "Please provide one image " });
         }
         const addProduct = Product.create({
             name,
@@ -30,7 +39,19 @@ export const createProduct:RequestHandler = async (req,res):Promise<any> => {
         // const discountPercentage = newPrice ? ((price - newPrice) / price) * 100 : null;
         // console.log(discountPercentage);
         await addProduct.save();
-        return res.status(200).json(addProduct );
+
+        for (const image of images) {
+            const resource = Resources.create({
+                entityName: image.filename,
+                filePath: image.path,
+                fileType: image.mimetype,
+                product: addProduct,
+            });
+            await resource.save();
+        }
+        
+        
+        return res.status(201).json(addProduct );
     } catch (error:any) {
         console.log("Error in createProduct controller", error.message);
         res.status(500).json({error: "Internal server error"});
@@ -112,7 +133,7 @@ export const getAllProducts:RequestHandler = async(req ,res):Promise<any> =>{
             return res.status(400).json({message:"Not Found Products"})
         }
         if(products.length===0){
-            return res.status(200).json({message:"No Product Yet"})
+            return res.status(404).json({message:"No Product Yet"})
         }
         return res.status(200).json(products);
     } catch (error:any) {
