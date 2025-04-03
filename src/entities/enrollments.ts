@@ -12,8 +12,8 @@ export class Enrollments extends BaseEntity {
   @Column({ type: "enum", enum: ['accept', 'rejected', 'pending'], default: "pending" })
   status: 'pending' | 'accept' | 'rejected';
 
-  @Column({ type: "date" })
-  expireDate: string; // You can use 'string' or 'Date' based on how you handle the date format
+  @Column({ type: "date" ,nullable:true})
+  expireDate: Date; // You can use 'string' or 'Date' based on how you handle the date format
 
   @ManyToOne(()=>User , (user)=>user.enrollments)
   user:User;

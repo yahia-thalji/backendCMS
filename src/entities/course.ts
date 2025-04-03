@@ -16,7 +16,7 @@ export class Course extends BaseEntity {
   description: string;
 
   @Column({ type: 'date' })
-  startDate: string; // You can use 'string' or 'Date' depending on your preferred type for dates
+  startDate: Date; // You can use 'string' or 'Date' depending on your preferred type for dates
 
   @Column({ type: 'varchar' })
   duration: string;

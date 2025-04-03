@@ -1,7 +1,12 @@
 import express from 'express'
-import { createCourse, deleteCourse, getAllCourses, getCourse, updateCourse } from '../controller/courseController';
+import { acceptOrRejected, createCourse, deleteCourse, getAll, getCourse, getEnrollments, getMyEnrollment, subscribeToCourse, updateCourse } from '../controller/courseController';
+import { IsAuthenticated } from '../middleware/protectRoute';
 
 const router =express.Router();
+//get all courses
+router.get("/getAllCourses",getAll);
+router.get("/getAllEnrollment",getEnrollments);
+router.get("/getMyEnrollment",IsAuthenticated,getMyEnrollment);
 
 router.post("/create",createCourse);
 router.post("/update/:courseId",updateCourse);
@@ -9,16 +14,12 @@ router.delete("/delete/:courseId",deleteCourse);
 
 // get course by id
 router.get("/:courseId",getCourse);
-//get all courses
-router.get("/getAllCourses",getAllCourses);
 // enrollment
-router.post("/subscribeCourse/:courseId");
+router.post("/subscribeToCourse/:courseId",IsAuthenticated,subscribeToCourse);
 // للموافقة رفض الاشتراك
-router.post("/acceptOrRejected/:enrollmentId")
+router.post("/acceptOrRejected",IsAuthenticated,acceptOrRejected)
 
-router.get("/getEnrollment/:enrollmentId");
 //for Admin and for user if is accept and is't without expire date
-router.get("/getAllEnrollment");
 
 //Record
 router.post("/addRecord/:courseId");
