@@ -1,6 +1,7 @@
 import express from 'express'
-import { acceptOrRejected, createCourse, deleteCourse, getAll, getCourse, getEnrollments, getMyEnrollment, subscribeToCourse, updateCourse } from '../controller/courseController';
-import { IsAuthenticated } from '../middleware/protectRoute';
+import { acceptOrRejected, addRecord, createCourse, deleteCourse, getAll, getCourse, getEnrollments, getMyEnrollment, subscribeToCourse, updateCourse } from '../controller/courseController';
+import { IsAuthenticated, isAuthorized } from '../middleware/protectRoute';
+import { uploadFields } from '../middleware/multerMiddleware';
 
 const router =express.Router();
 //get all courses
@@ -8,7 +9,7 @@ router.get("/getAllCourses",getAll);
 router.get("/getAllEnrollment",getEnrollments);
 router.get("/getMyEnrollment",IsAuthenticated,getMyEnrollment);
 
-router.post("/create",createCourse);
+router.post("/create",uploadFields,createCourse);
 router.post("/update/:courseId",updateCourse);
 router.delete("/delete/:courseId",deleteCourse);
 
@@ -17,14 +18,14 @@ router.get("/:courseId",getCourse);
 // enrollment
 router.post("/subscribeToCourse/:courseId",IsAuthenticated,subscribeToCourse);
 // للموافقة رفض الاشتراك
-router.post("/acceptOrRejected",IsAuthenticated,acceptOrRejected)
+router.post("/acceptOrRejected",isAuthorized,acceptOrRejected)
 
 //for Admin and for user if is accept and is't without expire date
 
 //Record
-router.post("/addRecord/:courseId");
+router.post("/addRecord/:courseId",uploadFields,addRecord);
 router.post("/updateRecord/:courseId");
-router.delete("/addAndDeleteAndUpdateRecord/:courseId");
+router.delete("/deleteRecord/:courseId");
 
 // assignments
 router.post("/:courseId/AddAssignment");

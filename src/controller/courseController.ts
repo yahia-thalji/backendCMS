@@ -3,6 +3,7 @@ import { Course } from "../entities/course";
 import { Product } from "../entities/product";
 import { User } from "../entities/user";
 import { Enrollments } from "../entities/enrollments";
+import { Resources } from "../entities/resources";
 
 
 export const createCourse:RequestHandler = async (req , res):Promise<any> => {
@@ -23,6 +24,13 @@ export const createCourse:RequestHandler = async (req , res):Promise<any> => {
         }
         const startdate= new Date(startDate);
 
+                // Safely access req.files and handle cases where it might be undefined
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+        const images = files?.['images'] ?? [];
+        // Check if both arrays are empty
+        if (images.length === 0) {
+            return res.status(400).send({ message: "Please provide one image " });
+        }
         const createCourse =await Course.create({
             courseTitle,
             description ,
@@ -34,6 +42,17 @@ export const createCourse:RequestHandler = async (req , res):Promise<any> => {
             status ,
             meetingLink
         }).save();
+
+        for (const image of images) {
+            const resource = Resources.create({
+                entityName: image.filename,
+                filePath: image.path,
+                fileType: image.mimetype,
+                course: createCourse,
+            });
+            await resource.save();
+        }
+
         return res.status(201).json(createCourse)
     } catch (error:any) {
         console.log("Error in createCourse controller", error.message);
@@ -111,7 +130,7 @@ export const deleteCourse:RequestHandler = async (req , res):Promise<any> => {
 export const getCourse:RequestHandler = async (req , res):Promise<any> => {
     try {
         const courseId:any = req.params.courseId;
-        const course = await Course.findOne({where:{courseId:courseId}});
+        const course = await Course.findOne({where:{courseId:courseId},relations:['resources']});
         if(!course){
             return res.status(404).json({message:"Not Found"});
         }
@@ -123,7 +142,7 @@ export const getCourse:RequestHandler = async (req , res):Promise<any> => {
 }
 export const getAll: RequestHandler = async (req, res):Promise<any> => {
     try {
-        const courses = await Course.find();
+        const courses = await Course.find({relations:['resources']});
         if (!courses.length) {
             return res.status(404).json({ message: "Sorry, no courses available yet." });
         }
@@ -172,7 +191,7 @@ export const subscribeToCourse:RequestHandler = async (req , res):Promise<any> =
 
 export const getEnrollments:RequestHandler = async (req , res):Promise<any> => {
     try {
-        const enrollments = await Enrollments.find({relations:['user']});
+        const enrollments = await Enrollments.find({relations:['user','resources']});
         if(!enrollments){
             return res.status(404).json({message:"No Enrollments"});
         }
@@ -195,7 +214,7 @@ export const getMyEnrollment: RequestHandler = async (req, res): Promise<any> =>
 
         const myEnrollment = await Enrollments.find({
             where: { user: { UserID: userId }}, 
-            relations: ['user'],
+            relations: ['user' ,'course.resources'],
         });
 
         if (myEnrollment.length === 0) {
@@ -247,6 +266,56 @@ export const acceptOrRejected:RequestHandler = async (req , res):Promise<any> =>
 
     } catch (error:any) {
         console.log("Error in acceptOrRejected controller", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
+
+
+
+export const addRecord:RequestHandler = async (req , res):Promise<any> => {
+    try {
+        const courseId:any = req.params.courseId;
+        if(!courseId){
+            return res.status(400).json({message:"please enter the course id"});
+
+        }
+            const course = await Course.findOne({where:{courseId:courseId}});
+            if(!course){
+                return res.status(404).json({message:"Not Found Course !"})
+            }
+
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+            // Initialize images and videos as empty arrays if they do not exist
+            const videos = files?.['videos'] ?? [];
+    
+            // Check if both arrays are empty
+            if ( videos.length === 0) {
+                return res.status(400).send({ message: "Please provide at least one video" });
+            }
+            const videoResources = await Promise.all(videos.map(async (video) => {
+                const resource = Resources.create({
+                    entityName: video.filename,
+                    filePath: video.path,
+                    fileType: video.mimetype,
+                    course: course // Associate course with resource
+                });
+                return await resource.save();
+            }));
+            await course.save();
+            return res.status(201).json(course);
+    } catch (error:any) {
+        console.log("Error in addRecord controller", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
+
+
+export const updateRecord:RequestHandler = async (req , res):Promise<any> => {
+    try {
+        
+    } catch (error:any) {
+        console.log("Error in updateRecord controller", error.message);
         res.status(500).json({error: "Internal server error"});
     }
 }

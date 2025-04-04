@@ -38,6 +38,6 @@ export const uploadSingle = upload.single('file');
 export const uploadMultiple = upload.array('files', 10);
 export const uploadFields = upload.fields([
   { name: 'images', maxCount: 1 },
-  { name: 'videos', maxCount: 20 },
+  { name: 'videos', maxCount: 50 },
 ]);
 export const uploadDynamic = multer({ storage: storage }).any();
