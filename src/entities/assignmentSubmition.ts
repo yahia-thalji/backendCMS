@@ -13,7 +13,7 @@ export class Assignmentsubmition extends BaseEntity {
   @ManyToOne(()=>User , (user)=>user.assignmentsubmition)
   user:User
   
-  @Column({ type: "enum", enum: ['pass', 'fill'] })
+  @Column({ type: "enum", enum: ['pass', 'fill'] ,nullable:true})
   status: 'pass' | 'fill';
 
   @ManyToOne(() => Assignment, assignment => assignment.assignmentsubmition)
