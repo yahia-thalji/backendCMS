@@ -12,6 +12,7 @@
 //     synchronize: true,
 //     schema: 'hannenSchema_db',
 //     entities: [__dirname + "/../entities/**/*.ts"],
+//     migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  // ← إضافة مسار المايجريشن
 
 //     // entities: [,],
 // });
