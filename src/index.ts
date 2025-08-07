@@ -8,7 +8,7 @@ import session from 'express-session';
 // import ip from 'ip';
 import path from 'path';
 
-import { initializeDB } from './config/connectPgDB';   
+import { initializeDB } from "./config/connectPgDB";   
 import { errorHandler, notFound, validateUUIDParam } from './middleware/httpErorrs';
 
 
@@ -62,8 +62,14 @@ app.use(notFound);
 app.use(errorHandler);
 app.use(validateUUIDParam);
 
-app.listen(port,async()=>{
-    // console.log(`Server is running on http://${IP}:${port}`);
-    console.log(`✅ Server is running on port ${port}`);
-    await initializeDB();
-})
+(async () => {
+  try {
+    await initializeDB();  // أولاً: تأكد من تهيئة DB
+    app.listen(port, () => {
+      console.log(`✅ Server is running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to initialize DB:', error);
+    process.exit(1);  // اغلق التطبيق لو فشل الاتصال
+  }
+})();
