@@ -7,6 +7,7 @@ import { Resources } from "../entities/resources";
 import { Assignment } from "../entities/assignment";
 import { Assignmentsubmition } from "../entities/assignmentSubmition";
 import { createNotification, getAdminUsers } from "./notificationHelpers";
+import { database } from "../config/connectPgDB"; // تأكد من المسار الصحيح
 
 
 export const createCourse:RequestHandler = async (req , res):Promise<any> => {
@@ -143,20 +144,22 @@ export const getCourse:RequestHandler = async (req , res):Promise<any> => {
         res.status(500).json({error: "Internal server error"});
     }
 }
-export const getAll: RequestHandler = async (req, res):Promise<any> => {
+export const getAll: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const courses = await Course.find({relations:['resources']});
+        const courses = await database.getRepository(Course).find({
+            relations: ['resources'], // إذا كنت تستخدم علاقات
+        });
+
         if (!courses.length) {
             return res.status(404).json({ message: "Sorry, no courses available yet." });
         }
 
         return res.status(200).json(courses);
-    } catch (error:any) {
+    } catch (error: any) {
         console.error("Error in getAllCourses controller:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-
 export const subscribeToCourse:RequestHandler = async (req , res):Promise<any> => {
     try {
 
