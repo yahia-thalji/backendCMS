@@ -1,44 +1,40 @@
 import { RequestHandler } from "express";
 import { Brand } from "../entities/brand";
 import { Resources } from "../entities/resources";
-import { instanceToPlain } from 'class-transformer';
 import fs from "fs";
+import { database } from "../config/connectPgDB";
 
-
-export const addBrand: RequestHandler = async (req, res):Promise<any> => {
+export const addBrand: RequestHandler = async (req, res): Promise<any> => {
     try {
+        if (!database.isInitialized) {
+            await database.initialize();
+        }
+
         const { name } = req.body;
 
         if (!name) {
             return res.status(400).json({ message: "Please enter name" });
         }
 
-        // تحقق إذا كانت العلامة التجارية موجودة
         const existingBrand = await Brand.findOneBy({ name });
-
         if (existingBrand) {
             return res.status(400).json({ message: `The brand "${name}" already exists` });
         }
 
-        // أنشئ العلامة التجارية الجديدة
         const newBrand = Brand.create({ name });
         await newBrand.save();
 
-        // تحقق من وجود ملف
         if (!req.file) {
             return res.status(400).json({ message: "File is required" });
         }
 
-        // إنشاء مورد جديد
         const newResource = new Resources();
         newResource.filePath = req.file.path;
         newResource.fileType = req.file.mimetype;
         newResource.entityName = req.file.filename;
-        newResource.brand = newBrand; // ربط العلاقة
+        newResource.brand = newBrand;
 
         await newResource.save();
-
-        // ربط المرجع في الجهة الأخرى إن كان ذلك معرفًا
         newBrand.resources = newResource;
         await newBrand.save();
 
@@ -51,14 +47,12 @@ export const addBrand: RequestHandler = async (req, res):Promise<any> => {
               fileType: newResource.fileType,
               entityName: newResource.entityName
             }
-          });
-          
+        });
     } catch (error: any) {
         console.error("Error in addBrand controller:", error.message);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-
 
 
 export const updateBrand: RequestHandler = async (req, res): Promise<any> => {
