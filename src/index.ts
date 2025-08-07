@@ -66,7 +66,7 @@ app.use(validateUUIDParam);
 
 (async () => {
   try {
-    await initializeDB();  // أولاً: تأكد من تهيئة DB
+    await initializeDB(); 
     app.listen(port, () => {
       console.log(`✅ Server is running on port ${port}`);
     });

@@ -132,17 +132,25 @@ export const updateUser: RequestHandler = async (req, res): Promise<any> => {
 
 export const getAllUsers:RequestHandler = async (req , res):Promise<any> => {
     try {
-        const users = await User.find({
-            order:{
-                firstName:"ASC"
-            }
-        });
-        if(!users){
-            return res.status(400).json({message:"Not Found"})
-        }
-        return res.status(200).json(users)
+           return res.json({ message: "hello" });
     } catch (error:any) {
         console.log("Error in getAllUsers controller", error.message);
         res.status(500).json({error: "Internal server error"});
     }
 }
+// export const getAllUsers:RequestHandler = async (req , res):Promise<any> => {
+//     try {
+//         const users = await User.find({
+//             order:{
+//                 firstName:"ASC"
+//             }
+//         });
+//         if(!users){
+//             return res.status(400).json({message:"Not Found"})
+//         }
+//         return res.status(200).json(users)
+//     } catch (error:any) {
+//         console.log("Error in getAllUsers controller", error.message);
+//         res.status(500).json({error: "Internal server error"});
+//     }
+// }
