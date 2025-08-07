@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from "cors";
 import session from 'express-session';
 
-import ip from 'ip';
+// import ip from 'ip';
 import path from 'path';
 
 import { initializeDB } from './config/connectPgDB';   
@@ -26,8 +26,8 @@ import searchRoutes  from "./routes/searchRoutes";
 dotenv.config();
 
 const app = express();
-const port = process.env.APP_PORT ;
-const IP = ip.address();
+const port = process.env.PORT || 3000;
+// const IP = ip.address();
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -63,6 +63,7 @@ app.use(errorHandler);
 app.use(validateUUIDParam);
 
 app.listen(port,async()=>{
-    console.log(`Server is running on http://${IP}:${port}`);
+    // console.log(`Server is running on http://${IP}:${port}`);
+    console.log(`✅ Server is running on port ${port}`);
     await initializeDB();
 })
