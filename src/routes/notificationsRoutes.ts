@@ -1,12 +1,20 @@
 import express from 'express';
+import {
+  getUserNotifications,
+  markNotificationAsRead,
+  sendNotification
+} from '../controller/notificationsController';
+import { IsAuthenticated } from '../middleware/protectRoute';
 
 const router = express.Router();
 
-// get all notifications
-router.get("/all");
-// get a notification by user id
-router.get("/user/:userId");
-// make read = true when user read the notification
-router.post("/:notificationId/read");
+// Get user notifications
+router.get('/', IsAuthenticated,getUserNotifications);
+
+// Mark notification as read
+router.patch('/:notificationId/read', IsAuthenticated, markNotificationAsRead);
+
+// Send notification (admin only)
+router.post('/', IsAuthenticated, sendNotification);
 
 export default router;

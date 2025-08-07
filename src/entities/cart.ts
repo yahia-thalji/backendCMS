@@ -8,10 +8,10 @@ export class Cart extends BaseEntity {
   @PrimaryGeneratedColumn()
   cartId: number;
 
-  @Column({ type: "decimal" })
+  @Column({ type: "decimal" ,precision: 10, scale: 2 })
   orderTotalPrice: number;
 
-  @Column({ type: "decimal" })
+  @Column({ type: "decimal" ,precision: 10, scale: 2 })
   orderDiscountPrice: number;
 
   @ManyToOne(()=>User, (user)=>user.cart)

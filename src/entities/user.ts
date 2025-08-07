@@ -51,10 +51,11 @@ export class User extends BaseEntity {
 
     // when we want to change the password account
     @Column({ type: "varchar", nullable: true })
-    resetToken?: string;
-
+    resetCode: string | null;
+    
     @Column({ type: "timestamp", nullable: true })
-    resetTokenExpiry?: Date;
+    resetCodeExpires: Date | null;
+    
 
 
     @ManyToOne(() => Role, (role) => role.roleId)
@@ -84,9 +85,20 @@ export class User extends BaseEntity {
     @CreateDateColumn({ type: "timestamp" })
     createdAt: Date;
 
-    @OneToOne(() => Resources, (resources) => resources.user, { nullable: true })
+    @OneToOne(() => Resources, (resources) => resources.user, { nullable: true,cascade: true, eager: true  })
     @JoinColumn()
     UserProfilePicture: Resources;
+
+    @Column({ default: 0 })
+    loginAttempts: number;
+  
+    @Column({ type: 'timestamp', nullable: true })
+    accountLockedUntil: Date | null;
+
+
+    @Column({ type: "int", default: 0 })
+    resetCodeAttempts: number;
+
 
     @UpdateDateColumn({ type: "timestamp" })
     updatedAt: Date;

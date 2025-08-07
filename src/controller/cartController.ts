@@ -3,6 +3,8 @@ import { Product } from "../entities/product";
 import { Cart } from "../entities/cart";
 import { User } from "../entities/user";
 import { CartItem } from "../entities/cartItem";
+import { createNotification, getAdminUsers } from "./notificationHelpers";
+import { In } from "typeorm";
    
 export const addToCart: RequestHandler = async (req, res): Promise<any> => {
     try {
@@ -201,7 +203,16 @@ export const checkout: RequestHandler = async (req, res): Promise<any> => {
     });
 
     await newCart.save();
-
+// After checkout
+    const adminUsers = await getAdminUsers();
+    for (const admin of adminUsers) {
+      await createNotification(
+        `New Order #${newCart.cartId}`,
+        "new_order",
+        userIsExist,
+        admin
+      );
+    }
     return res.status(200).json({ message: "Purchased successfully", cart: newCart });
 
   } catch (error: any) {
@@ -219,62 +230,180 @@ export const updateOrderStatus: RequestHandler = async (req, res): Promise<any> 
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const item = await CartItem.findOne({where:{id:itemId} , relations:['product']});
-
-    // const cart = await Cart.findOne({
-    //   where: {cartId:cartId},
-    //   relations: ["items", "items.product"],
-    // });
+    // Find the item with all necessary relations
+    const item = await CartItem.findOne({ 
+      where: { id: itemId }, 
+      relations: ['product', 'cart', 'user'] // Added 'user' relation for notification
+    });
 
     if (!item) {
-      return res.status(404).json({ message: "No Item" });
+      return res.status(404).json({ message: "No Item found" });
     }
 
     if (item.status === "accept" || item.status === "rejected") {
       return res.status(400).json({ message: `This order has already been ${item.status}.` });
     }
 
-    if (status === "rejected") {
-      item.status = "rejected";
-      await item.save(); 
-      return res.status(200).json({ message: "We are sorry, your order has been rejected." });
+    // Get the current user (admin) making the update
+    const adminUser = (req as any).user;
+
+    if (status === 'accept') {
+      item.status = 'accept';
+      item.deliveredAt = new Date();
+    } else {
+      item.status = 'rejected';
+      item.cart.orderTotalPrice -= item.product.price;
+      item.cart.orderDiscountPrice -= item.product.newPrice ? item.product.newPrice : 0;
     }
 
-      item.status = "accept";
-
-      if (item.product.quantity < item.quantity) {
-        return res.status(400).json({ message: `Not enough stock for ${item.product.name}` });
-      }
-      item.product.quantity -= item.quantity;
-      await item.product.save();
-    
-
     await item.save();
+    await item.cart.save();
+
+    // Send notification to the user who placed the order
+const message = "تم تحديث طلبك، قم بمراجعة صفحة 'طلباتي'";
+
+await createNotification(
+  message,
+  "order_status",
+  adminUser, // المستخدم الإداري الذي قام بالتحديث
+  item.user   // المستخدم الذي قدم الطلب
+);
 
 
-    return res.status(200).json({ message: "Order has been accepted successfully!" });
-
-  } catch (error: any) {
-    console.error("Error in updateOrderStatus controller", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(200).json({ 
+      message: 'Status updated successfully!',
+      newStatus: status
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error updating status' });
   }
 };
 
 
-
 export const getAllOrders: RequestHandler = async (req, res): Promise<any> => {
   try {
-
-    const orders = await Cart.find({relations:['user']});
+    const orders = await Cart.find({
+      relations: ['user'],
+      select: {
+        cartId: true,
+        orderTotalPrice: true,
+        orderDiscountPrice: true,
+        createdAt: true,
+      },
+      order:{
+        cartId:"desc"
+      }
+    });
 
     if (orders.length === 0) {
       return res.status(404).json({ message: "Not Found Any Order Yet" });
     }
 
-    return res.status(200).json(orders);
+    const filteredOrders = orders.map(order => ({
+      cartId: order.cartId,
+      orderTotalPrice: order.orderTotalPrice,
+      orderDiscountPrice: order.orderDiscountPrice,
+      createdAt: order.createdAt,
+      firstName: order.user?.firstName,
+      lastName: order.user?.lastName
+    }));
+
+    return res.status(200).json(filteredOrders);
   } catch (error: any) {
     console.error("Error in getOrders controller", error.message);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
+
+export const getOrderWithItems: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const cartId: any = req.params.cartId;
+    console.log(cartId);
+    if (!cartId) {
+      return res.status(400).json({ error: "Please provide a valid cartId" });
+    }
+
+    const cartItems = await CartItem.find({
+      where: { cart: { cartId: cartId } },
+      relations: ["user", "cart", "product"],
+    });
+
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(404).json({ message: "No cart items found" });
+    }
+
+    const filteredItems = cartItems.map((item) => ({
+      cart: {
+        cartId: item.cart.cartId,
+        orderTotalPrice: item.cart.orderTotalPrice,
+        orderDiscountPrice: item.cart.orderDiscountPrice,
+      },
+      user: {
+        UserID: item.user.UserID,
+        firstName: item.user.firstName,
+        lastName: item.user.lastName,
+        address: item.user.address,
+        phoneNumber: item.user.phoneNumber,
+        email: item.user.email,
+        gender: item.user.gender,
+      },
+      product: {
+        productId: item.product.productId,
+        name: item.product.name,
+        quantity: item.product.quantity,
+        price: item.product.price,
+        newPrice: item.product.newPrice,
+        cartItem: {
+          quantity: item.quantity,
+          status: item.status,
+          itemId: item.id
+        },
+      },
+    }));
+
+    return res.status(200).json(filteredItems);
+  } catch (error: any) {
+    console.error("Error in getOrderWithItems controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getMyOrder: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const user = (req as any).user;
+    const UserID: any = user.userId;
+
+    const userIsExist = await User.findOne({ where: { UserID: UserID } });
+    if (!userIsExist) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const cartItems = await CartItem.createQueryBuilder('cartItem')
+      .leftJoinAndSelect('cartItem.product', 'product')
+      .leftJoinAndSelect('cartItem.cart', 'cart')
+      .leftJoinAndSelect('cartItem.user', 'user')
+      .select([
+        'cart.cartId',
+        'cartItem.quantity',
+        'cartItem.status',
+        'cartItem.createdAt',
+        'product.name',
+        'product.price',
+        'product.newPrice'
+      ])
+      .where('user.UserID = :UserID', { UserID })
+      .andWhere('cartItem.status IN (:...statuses)', { 
+        statuses: ['pending', 'accept' , 'rejected'] 
+      })
+      .orderBy('cartItem.createdAt', 'DESC')
+      .getMany();
+
+    return res.status(200).json(cartItems);
+
+  } catch (error: any) {
+    console.log("Error in getMyOrder controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};

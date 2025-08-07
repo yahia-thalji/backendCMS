@@ -1,5 +1,5 @@
 import express from 'express'
-import { addToCart, changeQuantity, checkout, getAllOrders, getItemsCart, getItemsCartPending,  removeItem, updateOrderStatus } from '../controller/cartController';
+import { addToCart, changeQuantity, checkout, getAllOrders, getItemsCart, getItemsCartPending,  getMyOrder,  getOrderWithItems,  removeItem, updateOrderStatus } from '../controller/cartController';
 import { IsAuthenticated, isAuthorized } from '../middleware/protectRoute';
 
 const router = express.Router();
@@ -25,4 +25,8 @@ router.post("/updateOrderStatus",isAuthorized,updateOrderStatus);
 
 //Get all orders for an admin where status is accept or rejected or pending
 router.get('/orders/admin',getAllOrders);
+
+router.get("/getItems/:cartId",getOrderWithItems);
+
+router.get("/getMyOrder",IsAuthenticated,getMyOrder)
 export default router;

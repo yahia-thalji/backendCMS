@@ -2,6 +2,7 @@ import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGen
 import { User } from './user';
 import { Product } from './product';
 import { Course } from './course';
+import { Brand } from './brand';
 
 @Entity({ name: "Resources" })
 export class Resources extends BaseEntity {
@@ -22,11 +23,14 @@ export class Resources extends BaseEntity {
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => Product, (product) => product.resources)
+  @ManyToOne(() => Product, (product) => product.resources , {onDelete: 'CASCADE' })
   product: Product;
 
-  @ManyToOne(() => Course, (course) => course.resources)
+  @ManyToOne(() => Course, (course) => course.resources ,{ onDelete: 'CASCADE' })
   course: Course;
+
+  @OneToOne(()=>Brand , (brand)=>brand.resources)
+  brand: Brand
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

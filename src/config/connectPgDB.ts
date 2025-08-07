@@ -1,14 +1,6 @@
 import { DataSource } from "typeorm";
 import 'dotenv/config';
-// import { User } from "../entities/user/User"; 
-// import { Role } from "../entities/user/role";
-// import { Course } from "../entities/courses/course";
-// import { Assignment } from "../entities/courses/assignment";
-// import { Assignmentsubmition } from "../entities/courses/assignmentSubmition";
-// import { Enrollments } from "../entities/courses/enrollments";
 
-// import { Cart } from "backend/entities/cart";
-// import { Category } from "backend/entities/category";
 export const database = new DataSource({
     type: 'postgres',
     host: process.env.DATABASE_HOST,

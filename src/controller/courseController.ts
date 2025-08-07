@@ -6,6 +6,7 @@ import { Enrollments } from "../entities/enrollments";
 import { Resources } from "../entities/resources";
 import { Assignment } from "../entities/assignment";
 import { Assignmentsubmition } from "../entities/assignmentSubmition";
+import { createNotification, getAdminUsers } from "./notificationHelpers";
 
 
 export const createCourse:RequestHandler = async (req , res):Promise<any> => {
@@ -181,10 +182,21 @@ export const subscribeToCourse:RequestHandler = async (req , res):Promise<any> =
             course:course
         });
          await createEnrollment.save();
+         // After enrollment creation
+            const adminUsers = await getAdminUsers();
+            for (const admin of adminUsers) {
+            await createNotification(
+                `New Course Enrollment Request - ${course.courseTitle}`,
+                "enrollment_request",
+                userIsExist,
+                admin
+            );
+            }
         return res.status(201).json({
             message:"You have successfully subscribed.",
             Enrollment:createEnrollment,
         })
+        
     } catch (error:any) {
         console.log("Error in subscribeToCourse controller", error.message);
         res.status(500).json({error: "Internal server error"});
@@ -204,6 +216,30 @@ export const getEnrollments:RequestHandler = async (req , res):Promise<any> => {
     }
 }
 
+export const getEnrolmentWhenPending:RequestHandler = async (req , res):Promise<any> => {
+    try {
+        const user = (req as any).user;
+        const userId: string = user.userId;
+    
+        const userIsExist = await User.findOne({ where: { UserID: userId } }); 
+        if (!userIsExist) {
+            return res.status(400).json({ message: "User not found" });
+        }
+        const myEnrollment = await Enrollments.find({
+            where: { user: { UserID: userId }, status:"pending"}, 
+            relations: ['user' ,'course.resources'],
+        });
+
+        if (myEnrollment.length === 0) {
+            return res.status(404).json({ message: "No enrollments found" });
+        }
+
+        return res.status(200).json(myEnrollment);
+    } catch (error: any) {
+        console.log("Error in getMyEnrollment controller", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 export const getMyEnrollment: RequestHandler = async (req, res): Promise<any> => {
     try {
         const user = (req as any).user;
@@ -213,7 +249,6 @@ export const getMyEnrollment: RequestHandler = async (req, res): Promise<any> =>
         if (!userIsExist) {
             return res.status(400).json({ message: "User not found" });
         }
-console.log(userIsExist);
         const myEnrollment = await Enrollments.find({
             where: { user: { UserID: userId }, status:"accept"}, 
             relations: ['user' ,'course.resources'],
@@ -230,45 +265,64 @@ console.log(userIsExist);
     }
 };
 
-export const acceptOrRejected:RequestHandler = async (req , res):Promise<any> => {
+export const acceptOrRejected: RequestHandler = async (req, res): Promise<any> => {
     try {
-        // const user = (req as any).user;
-        // const UserID: any = user.userId;
-    
-        // const userIsExist = await User.findOne({ where: { UserID: UserID } });
-        // if (!userIsExist) {
-        //     return res.status(400).json({ message: "User not found" });
-        // }
+        const { enrollmentId, status } = req.body;
+        
+        if (!["accept", "rejected"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status value" });
+        }
+        
+        if (!enrollmentId) {
+            return res.status(400).json({ message: "Please enter the id" });
+        }
 
+        const enrollment = await Enrollments.findOne({
+            where: { myCourseId: enrollmentId },
+            relations: ['user', 'course']
+        });
+        
+        if (!enrollment) {
+            return res.status(404).json({ message: "No Found" });
+        }
 
-        const {enrollmentId , status} = req.body;
-            if (!["accept", "rejected"].includes(status)) {
-             return res.status(400).json({ message: "Invalid status value" });
-            }
-            if(!enrollmentId){
-                return res.status(400).json({message:"please enter the id"})
-            }
-        const enrollment = await Enrollments.findOne({where:{myCourseId:enrollmentId} ,relations:['user']});
-        if(!enrollment){
-            return res.status(404).json({message:"No Found"});
+        // Get the admin user (or system user) who is processing this
+        const processingAdmin = await User.findOne({
+            where: { Role: { roleName: 'admin' } },
+            relations: ['Role']
+        });
+
+        if (!processingAdmin) {
+            console.error("No admin user found in system");
+            // Continue without notification if no admin exists
+        } else {
+            // Send notification to the enrolled user
+            await createNotification(
+                `Your enrollment for ${enrollment.course.courseTitle} has been ${status}`,
+                "enrollment_status",
+                processingAdmin,
+                enrollment.user
+            );
         }
 
         if (status === "rejected") {
             enrollment.status = "rejected";
             await enrollment.save();
-            return res.status(422).json({ message: "Your enrollment has been rejected. Please try again later." });
+            return res.status(422).json({ 
+                message: "Your enrollment has been rejected. Please try again later." 
+            });
         }
-        
 
-        enrollment.status="accept";
+        enrollment.status = "accept";
         await enrollment.save();
-        return res.status(201).json({message:"You have been 'accepted' into the course."})
+        
+        return res.status(201).json({ 
+            message: "You have been 'accepted' into the course." 
+        });
 
-
-
-    } catch (error:any) {
+    } catch (error: any) {
         console.log("Error in acceptOrRejected controller", error.message);
-        res.status(500).json({error: "Internal server error"});
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
@@ -482,28 +536,37 @@ export const deleteAssignment:RequestHandler = async (req , res):Promise<any> =>
     }
 }
 
-export const getAllAssignmentsForCourse:RequestHandler = async (req , res):Promise<any> => {
+export const getAllAssignmentsForCourse: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const courseId :any= req.params.courseId;
-        if(!courseId){
+        const courseId: any = req.params.courseId;
+        if (!courseId) {
             return res.status(400).json({ message: "Please provide the course ID" });
         }
-        const course = await Course.findOne({where:{courseId:courseId}});
-        if(!course){
-            return res.status(404).json({message:"Not Found Course"});
+
+        const course = await Course.findOne({ where: { courseId: courseId } });
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
         }
 
-        const getAll = await Assignment.find({where:{course :{courseId:courseId}},relations:['course' ,'assignmentsubmition']});
-        if(!getAll){
-            return res.status(404).json({message:"No Assignments"})
+        const getAll = await Assignment.find({
+            where: { course: { courseId: courseId } },
+            relations: ['course', 'assignmentsubmition','assignmentsubmition.user'],
+            order: {
+                createdAt: 'ASC' // ترتيب حسب الأقدم
+            }
+        });
+
+        if (!getAll || getAll.length === 0) {
+            return res.status(404).json({ message: "No assignments found" });
         }
+
         return res.status(200).json(getAll);
-        
-    } catch (error:any) {
+
+    } catch (error: any) {
         console.log("Error in getAllAssignmentsForCourse controller", error.message);
-        res.status(500).json({error: "Internal server error"});
+        return res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
 export const getAssignment:RequestHandler = async (req , res):Promise<any> => {
     try {
@@ -523,79 +586,135 @@ export const getAssignment:RequestHandler = async (req , res):Promise<any> => {
 }
 
 
-export const submittingAssignment:RequestHandler = async (req , res):Promise<any> => {
+export const submittingAssignment: RequestHandler = async (req, res): Promise<any> => {
     try {
-
         const user = (req as any).user;
         const UserID: any = user.userId;
-    
+
         const userIsExist = await User.findOne({ where: { UserID: UserID } });
         if (!userIsExist) {
             return res.status(400).json({ message: "User not found" });
         }
 
+        const assignmentId: any = req.params.assignmentId;
+        if (!assignmentId) {
+            return res.status(400).json({ message: "Please provide the assignment ID" });
+        }
 
-        const assignmentId :any = req.params.assignmentId;
-        if(!assignmentId){
-            return res.status(400).json({ message: "Please provide the assignment ID" })
+        const assignment = await Assignment.findOne({ where: { assignmentId: assignmentId } });
+        if (!assignment) {
+            return res.status(404).json({ message: "Assignment not found" });
         }
-        const assignment = await Assignment.findOne({where:{assignmentId:assignmentId}});
-        if(!assignment){
-            return res.status(404).json({message:"Not Found Assignment"})
+
+        const { answer } = req.body;
+        if (!answer) {
+            return res.status(400).json({ message: "Please fill the answer field" });
         }
-        const {answer}=req.body;
-        if(!answer){
-            return res.status(400).json({message:"Please fill the field answer"});
-        }
-        const submitAns = Assignmentsubmition.create({
-            answer:answer,
-            assignment:assignment,
-            user:userIsExist,
+
+        // التحقق من وجود إجابة سابقة (الأقدم أولاً)
+        const existingSubmission = await Assignmentsubmition.findOne({
+            where: {
+                assignment: { assignmentId: assignmentId },
+                user: { UserID: UserID }
+            },
+            relations: ["assignment", "user"],
+            order: {
+                createdAt: "ASC"
+            }
         });
-        await submitAns.save();
 
-        return res.status(201).json(submitAns);
+        if (existingSubmission) {
+            existingSubmission.answer = answer;
+            await existingSubmission.save();
 
-    } catch (error:any) {
+            return res.status(200).json({ message: "Answer updated successfully", data: existingSubmission });
+        } else {
+            const submitAns = Assignmentsubmition.create({
+                answer: answer,
+                assignment: assignment,
+                user: userIsExist,
+            });
+            await submitAns.save();
+            // After assignment submission
+                const adminUsers = await getAdminUsers();
+                for (const admin of adminUsers) {
+                await createNotification(
+                    `New Assignment Submission - ${assignment.title}`,
+                    "assignment_submission",
+                    userIsExist,
+                    admin
+                );
+                }
+            return res.status(201).json({ message: "Answer submitted successfully", data: submitAns });
+        }
+        
+    } catch (error: any) {
         console.log("Error in submittingAssignment controller", error.message);
-        res.status(500).json({error: "Internal server error"});
+        return res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
-export const addScourForAssignment:RequestHandler = async (req , res):Promise<any> => {
+
+export const addScourForAssignment: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const assignmentId :any = req.params.assignmentId;
-        const submitId :any = req.params.submitId;
-        if(!assignmentId || !submitId){
-            return res.status(400).json({ message: "Please provide the ID" })
-        }
-        const assignment = await Assignment.findOne({where:{assignmentId:assignmentId}});
-        if(!assignment){
-            return res.status(404).json({message:"Not Found Assignment"})
+        const assignmentId: any = req.params.assignmentId;
+        const submitId: any = req.params.submitId;
+        
+        if (!assignmentId || !submitId) {
+            return res.status(400).json({ message: "Please provide the ID" });
         }
 
-        const submit = await Assignmentsubmition.findOne({where:{assignmentSubmitionId:submitId}});
-        if(!submit){
-            return res.status(404).json({message:"No Submitting"})
+        // Find assignment with relations to ensure we have the title
+        const assignment = await Assignment.findOne({ 
+            where: { assignmentId: assignmentId } 
+        });
+        
+        if (!assignment) {
+            return res.status(404).json({ message: "Not Found Assignment" });
         }
 
-        const {status} =req.body;
-        if(!status){
-            return res.status(400).json({ message: "Please provide the status" })
+        // Find submission with user relation for notification
+        const submit = await Assignmentsubmition.findOne({ 
+            where: { assignmentSubmitionId: submitId },
+            relations: ['user']  // Important for sending notification to user
+        });
+        
+        if (!submit) {
+            return res.status(404).json({ message: "No Submission Found" });
         }
+
+        const { status } = req.body;
+        if (!status) {
+            return res.status(400).json({ message: "Please provide the status" });
+        }
+        
         if (!["pass", "fill"].includes(status)) {
             return res.status(400).json({ message: "Invalid status value" });
         }
-
-        submit.status=status;
-
+//https://www.youtube.com/watch?v=dF8-BjRiqZY
+        // Update the submission status
+        submit.status = status;
         await submit.save();
 
-        return res.status(200).json({message:"The grade has been spotted."})
+        // Get the current user (grader/admin) from request
+        const grader = (req as any).user;
 
-    } catch (error:any) {
+        // Send notification to the student
+        await createNotification(
+            `Your assignment "${assignment.title}" has been graded - Status: ${status}`,
+            "assignment_grade",
+            grader,  // Using the current user as the sender
+            submit.user  // The student who submitted
+        );
+
+        return res.status(200).json({ 
+            message: "The grade has been recorded.",
+            status: status 
+        });
+
+    } catch (error: any) {
         console.log("Error in addScourForAssignment controller", error.message);
-        res.status(500).json({error: "Internal server error"});
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
@@ -605,7 +724,7 @@ export const AllSubmissions:RequestHandler = async (req , res):Promise<any> => {
         if(!assignmentId){
             return res.status(400).json({ message: "Please provide the assignment ID" })
         }
-        const AllSubmissions = await Assignment.findOne({where:{assignmentId:assignmentId} , relations:['assignmentsubmition']});
+        const AllSubmissions = await Assignment.findOne({where:{assignmentId:assignmentId} , relations:['assignmentsubmition','assignmentsubmition.user']});
         if(!AllSubmissions){
             return res.status(404).json({message:"Not Found Assignment"})
         }
@@ -616,3 +735,69 @@ export const AllSubmissions:RequestHandler = async (req , res):Promise<any> => {
         res.status(500).json({error: "Internal server error"});
     }
 }
+
+export const getAnserForAnAssignment:RequestHandler = async (req , res):Promise<any> => {
+    try {
+        const user = (req as any).user;
+        const UserID: any = user.userId;
+    
+        const userIsExist = await User.findOne({ where: { UserID: UserID } });
+        if (!userIsExist) {
+            return res.status(400).json({ message: "User not found" });
+        }
+        const getAnswers = await Assignmentsubmition.find({where:{user:{UserID:UserID}},relations:['assignment','user']})
+        if(!getAnswers){
+            return res.status(400).json({message:"No Answers yet"})
+        }
+
+        return res.status(200).json(getAnswers);
+    } catch (error:any) {
+        console.log("Error in getAnserForAnAssignment controller", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
+
+
+
+export const getEnrollmentForCourse: RequestHandler = async (req, res): Promise<any> => {
+    try {
+        const courseId: any = req.params.courseId;
+        if (!courseId) {
+            return res.status(400).json({ message: "must provide the course id" });
+        }
+
+        const enrollmentCourse = await Enrollments.find({
+            where: { course: { courseId } },
+            relations: ['course', 'user', 'user.UserProfilePicture']
+        });
+
+        if (!enrollmentCourse || enrollmentCourse.length === 0) {
+            return res.status(404).json({ message: "Not Found Enrollments" });
+        }
+
+        // تنسيق البيانات لتطابق التنسيق المطلوب
+        const formattedData = enrollmentCourse.map((enrollment) => ({
+            Enrollment: {
+                myCourseId: enrollment.myCourseId,
+                status: enrollment.status,
+                createdAt: enrollment.createdAt,
+            },
+            user: {
+                UserID: enrollment.user.UserID,
+                firstName: enrollment.user.firstName,
+                lastName: enrollment.user.lastName,
+                phoneNumber: enrollment.user.phoneNumber,
+                UserProfilePicture: {
+                    entityName: enrollment.user.UserProfilePicture?.entityName,
+                    fileType: enrollment.user.UserProfilePicture?.fileType,
+                    filePath: enrollment.user.UserProfilePicture?.filePath,
+                }
+            }
+        }));
+
+        return res.status(200).json(formattedData);
+    } catch (error: any) {
+        console.log("Error in getEnrollmentForCourse controller", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

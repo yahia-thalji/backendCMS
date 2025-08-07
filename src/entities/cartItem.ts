@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from "typeorm";
 import { Cart } from "./cart";
 import { Product } from "./product";
 import { User } from "./user";
@@ -12,6 +12,8 @@ export class CartItem extends BaseEntity {
   user:User;
   @ManyToOne(() => Cart, (cart) => cart.items, { onDelete: "CASCADE" })
   cart: Cart;
+  @RelationId((cartItem: CartItem) => cartItem.cart)
+  cartId: number;
 
   @ManyToOne(() => Product, (product) => product.cartItems ,{ onDelete: "CASCADE" })
   product: Product;
@@ -22,9 +24,12 @@ export class CartItem extends BaseEntity {
   @Column({ type: 'enum', enum: [ 'inCart','pending','accept' ,'rejected'] ,default:'inCart'},)
   status: 'pending' | 'inCart' | 'accept' |'rejected' ;
 
+  @Column({ type: 'timestamp', nullable: true })
+  deliveredAt: Date;
   @CreateDateColumn({ type: 'timestamp' })
   createdAt:Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt:Date;
+
 }

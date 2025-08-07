@@ -19,6 +19,10 @@ import categoryRoutes from "./routes/categoryRoutes";
 import productRoutes from "./routes/productRoutes";
 import cartRoutes from "./routes/cartRoutes";
 import courseRoutes from "./routes/courseRoutes";
+import brandRoutes from "./routes/brandRoutes";
+import reviewRoutes from "./routes/reviewsRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import searchRoutes  from "./routes/searchRoutes";
 dotenv.config();
 
 const app = express();
@@ -47,8 +51,12 @@ app.use("/api/user",userRoutes);
 app.use("/api/notification",notificationsRoutes);
 app.use("/api/category",categoryRoutes);
 app.use("/api/product",productRoutes);
+app.use("/api/brand",brandRoutes);
 app.use("/api/cart",cartRoutes);
 app.use("/api/course",courseRoutes);
+app.use("/api/review",reviewRoutes);
+app.use("/api/dashboard",dashboardRoutes);
+app.use("/api/search", searchRoutes); 
 
 app.use(notFound);
 app.use(errorHandler);

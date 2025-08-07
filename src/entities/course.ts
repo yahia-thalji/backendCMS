@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { AfterLoad, BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Enrollments } from './enrollments';
 import { Resources } from './resources';
 import { Assignment } from './assignment';
@@ -36,6 +36,9 @@ export class Course extends BaseEntity {
   @Column({ type: 'varchar' })
   meetingLink:string;
 
+  @Column('int', { default: 0 })
+  AvgRating: number;
+
   @OneToMany(() => Enrollments, enrollments => enrollments.course)
   enrollments: Enrollments[];
 
@@ -64,4 +67,14 @@ export class Course extends BaseEntity {
 
   @UpdateDateColumn({ type: "timestamp" })
   updatedAt: Date;
+
+    @AfterLoad()
+    calculateAvgRating() {
+      if (!Array.isArray(this.review) || this.review.length === 0) {
+        this.AvgRating = 0;
+      } else {
+        const totalRating = this.review.reduce((acc, review) => acc + (review.rating ?? 0), 0);
+        this.AvgRating = totalRating / this.review.length;
+      }
+    }
 }

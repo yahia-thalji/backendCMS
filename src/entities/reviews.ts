@@ -18,7 +18,7 @@ export class Reviews extends BaseEntity {
   user: User;
     
   @ManyToMany(() => Product, (product) => product.review)
-   product: Product[]; 
+  product: Product[]; 
 
   @ManyToMany(() => Course, (course) => course.review)
   course: Course[]; 

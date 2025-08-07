@@ -1,9 +1,10 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { AfterLoad, BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Category } from './category';
 import { Cart } from './cart';
 import { Resources } from './resources';
 import { Reviews } from './reviews';
 import { CartItem } from './cartItem';
+import { Brand } from './brand';
 
 @Entity({ name: "Product" })
 export class Product extends BaseEntity {
@@ -15,6 +16,10 @@ export class Product extends BaseEntity {
 
   @Column({ type: "varchar", nullable: false })
   description: string;
+
+
+  @Column({ type: "varchar", nullable: true })
+  howToUse: string;
 
   @Column('int')
   quantity: number;
@@ -37,8 +42,9 @@ export class Product extends BaseEntity {
   @OneToMany(() => CartItem, (cartItem) => cartItem.product, { eager: true ,  onDelete: 'CASCADE'})
   cartItems: CartItem[];
 
-  @OneToMany(() => Resources, (resources) => resources.product, { eager: true })
+  @OneToMany(() => Resources, (resources) => resources.product, { eager: true, cascade: true, onDelete: 'CASCADE' })
   resources: Resources[];
+  
 
   @ManyToMany(() => Reviews, (review) => review.product, { eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinTable({
@@ -53,6 +59,9 @@ export class Product extends BaseEntity {
     }
   })
   review: Reviews[];
+
+  @ManyToOne(()=>Brand , (brand)=>brand.product)
+  brand:Brand
 
   @Column('int', { default: 0 })
   AvgRating: number;
@@ -75,4 +84,17 @@ export class Product extends BaseEntity {
       this.status = 'in stock';
     }
   }
+
+  @AfterLoad()
+  calculateAvgRating() {
+    if (!Array.isArray(this.review) || this.review.length === 0) {
+      this.AvgRating = 0;
+    } else {
+      const totalRating = this.review.reduce((acc, review) => acc + (review.rating ?? 0), 0);
+      this.AvgRating = totalRating / this.review.length;
+    }
+  }
+  
+
+
 }

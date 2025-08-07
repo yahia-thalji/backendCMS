@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/createProduct",uploadFields,createProduct);
 
-router.post("/update/:productId",updateProduct);
+router.post("/update/:productId",uploadFields,updateProduct);
 router.delete("/delete/:productId",deleteProduct);
 
 //get single product
