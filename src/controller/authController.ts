@@ -183,13 +183,21 @@ export const login: RequestHandler = async (req, res): Promise<any> => {
         //     domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.COOKIE_DOMAIN,
         //     path: "/"
         // });
-        res.cookie("authToken", token, {
-            maxAge: 15 * 24 * 60 * 60 * 1000, // 15 يوم
-            httpOnly: true,
-            sameSite: "none", // للسماح بالكوكي عبر الدومينات
-            secure: true,     // مطلوب لأن Railway يعمل HTTPS
-            domain: "frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
-            path: "/"
+//         res.cookie("authToken", token, {
+//             maxAge: 15 * 24 * 60 * 60 * 1000, // 15 يوم
+//             httpOnly: true,
+//             sameSite: "none", // للسماح بالكوكي عبر الدومينات
+//             secure: true,     // مطلوب لأن Railway يعمل HTTPS
+//             domain: "frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
+//             path: "/"
+// });
+res.cookie("authToken", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "none",
+  path: "/",
+  maxAge: 15 * 24 * 60 * 60 * 1000,
+  domain: process.env.NODE_ENV === "production" ? "frontendh-production.up.railway.app" : undefined
 });
 
 
