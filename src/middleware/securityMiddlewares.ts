@@ -50,57 +50,57 @@ import axios from "axios";
 // export const csrfProtection = csrf({ cookie: true });
 
 
-export const verifyRecaptcha = async (token: string) => {
-    if (process.env.NODE_ENV === 'development') {
-        console.warn('⚠️ reCAPTCHA validation skipped in development!');
-        return true;
-      }
+// export const verifyRecaptcha = async (token: string) => {
+//     if (process.env.NODE_ENV === 'development') {
+//         console.warn('⚠️ reCAPTCHA validation skipped in development!');
+//         return true;
+//       }
 
-  try {
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const response = await fetch(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`,
-      { method: 'POST' }
-    );
+//   try {
+//     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+//     const response = await fetch(
+//       `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`,
+//       { method: 'POST' }
+//     );
     
-    const data = await response.json();
-    return data.success && data.score >= 0.3;
-  } catch (error) {
-    console.error('Error verifying reCAPTCHA:', error);
-    return false;
-  }
-};
+//     const data = await response.json();
+//     return data.success && data.score >= 0.3;
+//   } catch (error) {
+//     console.error('Error verifying reCAPTCHA:', error);
+//     return false;
+//   }
+// };
 
 
-export const verifyRecaptchaMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const token = req.body.recaptchaToken;
+// export const verifyRecaptchaMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const token = req.body.recaptchaToken;
 
-    if (!token) {
-      return res.status(400).json({ message: "reCAPTCHA token is required." });
-    }
+//     if (!token) {
+//       return res.status(400).json({ message: "reCAPTCHA token is required." });
+//     }
 
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const response = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify`,
-      null,
-      {
-        params: {
-          secret: secretKey,
-          response: token,
-        },
-      }
-    );
+//     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+//     const response = await axios.post(
+//       `https://www.google.com/recaptcha/api/siteverify`,
+//       null,
+//       {
+//         params: {
+//           secret: secretKey,
+//           response: token,
+//         },
+//       }
+//     );
 
-    const data = response.data;
+//     const data = response.data;
 
-    if (!data.success || data.score < 0.3) {
-      return res.status(400).json({ message: "Failed reCAPTCHA verification." });
-    }
+//     if (!data.success || data.score < 0.3) {
+//       return res.status(400).json({ message: "Failed reCAPTCHA verification." });
+//     }
 
-    next(); // Next to move to the next middleware or route handler
-  } catch (error) {
-    console.error("Error verifying reCAPTCHA:", error);
-    res.status(500).json({ message: "Error verifying reCAPTCHA." });
-  }
-};
+//     next(); // Next to move to the next middleware or route handler
+//   } catch (error) {
+//     console.error("Error verifying reCAPTCHA:", error);
+//     res.status(500).json({ message: "Error verifying reCAPTCHA." });
+//   }
+// };

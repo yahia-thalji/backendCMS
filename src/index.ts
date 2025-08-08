@@ -38,12 +38,13 @@ app.use(session({
   }));
 
   
-  app.use(cors({
-    origin: 'http://localhost:3001',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
+app.use(cors({
+  origin: ['http://localhost:3001', 'https://cpsystem-production.up.railway.app'], // استبدل بالدومين الفعلي
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
 }));
+
 // app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.use('/resources', express.static(path.join(__dirname, '../resources')));
 
