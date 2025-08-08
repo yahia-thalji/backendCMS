@@ -188,7 +188,7 @@ export const login: RequestHandler = async (req, res): Promise<any> => {
     httpOnly: true,
     sameSite: "none", // للسماح بالكوكي عبر الدومينات
     secure: true,     // مطلوب لأن Railway يعمل HTTPS
-    domain: "frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
+    domain: "https://frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
     path: "/"
 });
 
