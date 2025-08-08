@@ -37,12 +37,18 @@ app.use(session({
     saveUninitialized: true,
   }));
 
-  app.use(cors({
-  origin: (origin, callback) => {
-    callback(null, origin || '*'); // يقبل أي Origin
-  },
+//   app.use(cors({
+//   origin: (origin, callback) => {
+//     callback(null, origin || '*'); 
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//   credentials: true,
+//   allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
+// }));
+app.use(cors({
+  origin: "https://frontendh-production.up.railway.app", 
+  credentials: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
 }));
 

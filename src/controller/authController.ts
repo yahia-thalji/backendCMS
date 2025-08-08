@@ -175,14 +175,23 @@ export const login: RequestHandler = async (req, res): Promise<any> => {
         const token = await generateToken(user.UserID);
         
         // إعدادات الكوكي المحسنة
+        // res.cookie("authToken", token, {
+        //     maxAge: 15 * 24 * 60 * 60 * 1000,
+        //     httpOnly: true,
+        //     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        //     secure: process.env.NODE_ENV === "production",
+        //     domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.COOKIE_DOMAIN,
+        //     path: "/"
+        // });
         res.cookie("authToken", token, {
-            maxAge: 15 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            secure: process.env.NODE_ENV === "production",
-            domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.COOKIE_DOMAIN,
-            path: "/"
-        });
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 يوم
+    httpOnly: true,
+    sameSite: "none", // للسماح بالكوكي عبر الدومينات
+    secure: true,     // مطلوب لأن Railway يعمل HTTPS
+    domain: "frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
+    path: "/"
+});
+
 
         res.status(200).json({
             success: true,
