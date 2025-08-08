@@ -37,26 +37,14 @@ app.use(session({
     saveUninitialized: true,
   }));
 
-  
-// app.use(cors({
-//   origin: ['http://localhost:3001', 'https://cpsystem-production.up.railway.app'], // استبدل بالدومين الفعلي
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-//   credentials: true,
-//   allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
-// }));
-
-app.options('*', cors({
-  origin: 'https://frontendh-production.up.railway.app',
+  app.use(cors({
+  origin: (origin, callback) => {
+    callback(null, origin || '*'); // يقبل أي Origin
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
 }));
-
-app.use(cors({
-  origin: 'https://frontendh-production.up.railway.app',
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','cookie'],
-}));
-
 
 
 // app.use('/resources', express.static(path.join(__dirname, 'resources')));
