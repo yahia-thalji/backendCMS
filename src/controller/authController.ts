@@ -11,7 +11,6 @@ import {
     validatePassword,
     validatePhoneNumber
 } from "../middleware/validationMiddlewares";
-// import { verifyRecaptcha } from "../middleware/securityMiddlewares";
 
 // Helper function لتطهير المدخلات
 const sanitizeInput = (input: string): string => {
@@ -26,13 +25,8 @@ const delayResponse = async (min: number, max: number) => {
 
 export const signup: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const { recaptchaToken, ...userData } = req.body;
+        const userData = req.body;
         
-        // التحقق من reCAPTCHA
-        // if (!await verifyRecaptcha(recaptchaToken)) {
-        //     return res.status(400).json({ error: "فشل التحقق من reCAPTCHA" });
-        // }
-
         const { firstName, lastName, email, phoneNumber, address, gender, dateOfBirth, password, confirmPassword } = userData;
         
         // التحقق من المدخلات المطلوبة
@@ -136,13 +130,8 @@ export const signup: RequestHandler = async (req, res): Promise<any> => {
 
 export const login: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const { email, password, recaptchaToken } = req.body;
+        const { email, password } = req.body;
         
-        // التحقق من reCAPTCHA (تجاوز في التطوير)
-        // if (process.env.NODE_ENV !== 'development' && !await verifyRecaptcha(recaptchaToken)) {
-        //     return res.status(400).json({ error: "فشل التحقق من reCAPTCHA" });
-        // }
-
         if (!email || !password) {
             return res.status(400).json({ error: "الرجاء تقديم البريد الإلكتروني وكلمة المرور" });
         }
@@ -267,13 +256,8 @@ const generateResetCode = (): string => {
 
 export const requestPasswordReset: RequestHandler = async (req, res): Promise<any> => {
     try {
-        const { email, recaptchaToken } = req.body;
+        const { email } = req.body;
         
-        // التحقق من reCAPTCHA
-        // if (!await verifyRecaptcha(recaptchaToken)) {
-        //     return res.status(400).json({ error: "فشل التحقق من reCAPTCHA" });
-        // }
-
         if (!email) {
             return res.status(400).json({ error: "الرجاء إدخال البريد الإلكتروني" });
         }
