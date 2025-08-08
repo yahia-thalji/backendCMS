@@ -184,12 +184,12 @@ export const login: RequestHandler = async (req, res): Promise<any> => {
         //     path: "/"
         // });
         res.cookie("authToken", token, {
-    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 يوم
-    httpOnly: true,
-    sameSite: "none", // للسماح بالكوكي عبر الدومينات
-    secure: true,     // مطلوب لأن Railway يعمل HTTPS
-    domain: "https://frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
-    path: "/"
+            maxAge: 15 * 24 * 60 * 60 * 1000, // 15 يوم
+            httpOnly: true,
+            sameSite: "none", // للسماح بالكوكي عبر الدومينات
+            secure: true,     // مطلوب لأن Railway يعمل HTTPS
+            domain: "frontendh-production.up.railway.app", // أو اتركه فاضي إذا أردت أن يكون خاص بالباك فقط
+            path: "/"
 });
 
 
