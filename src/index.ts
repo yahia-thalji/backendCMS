@@ -33,7 +33,9 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || "https://frontendh-production.up.railway.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "cookie"]
+  allowedHeaders: ["Content-Type", "Authorization", "cookie"],
+  exposedHeaders: ["set-cookie"] 
+
 }));
 
 app.use(cookieParser());
