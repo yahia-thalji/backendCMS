@@ -221,11 +221,12 @@ export const logout: RequestHandler = async (req, res): Promise<any> => {
     try {
         res.clearCookie("authToken", {
             httpOnly: true,
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            secure: process.env.NODE_ENV === "production",
-            domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.COOKIE_DOMAIN,
-            path: "/"
+            secure: true,
+            sameSite: "none",
+            path: "/",
+            domain: ".railway.app"
         });
+
 
         res.status(200).json({ success: true, message: "تم تسجيل الخروج بنجاح" });
     } catch (error: any) {
