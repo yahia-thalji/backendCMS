@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "build": "tsc",
-    "migrate": "typeorm-ts-node-commonjs migration:run -d src/config/connectPgDB.ts",
-    "start": "npm run build && npm run migrate && node dist/index.js"
+"scripts": {
+  "build": "tsc",
+  "migrate": "typeorm-ts-node-commonjs migration:run -d src/config/connectPgDB.ts",
+  "start": "npm run build && npm run migrate && node dist/index.js"
 }
+
 ,
   "keywords": [],
   "author": "",

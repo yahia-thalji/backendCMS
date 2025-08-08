@@ -10,7 +10,7 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'hannenSchema_db',
+    schema: 'public',
     entities: [__dirname + "/../entities/**/*.ts"],
     migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
 
