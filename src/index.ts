@@ -11,26 +11,26 @@ import path from "path";
 import { initializeDB } from "./config/connectPgDB";
 import { errorHandler, notFound, validateUUIDParam } from "./middleware/httpErorrs";
 
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import notificationsRoutes from "./routes/notificationsRoutes";
-import categoryRoutes from "./routes/categoryRoutes";
-import productRoutes from "./routes/productRoutes";
-import cartRoutes from "./routes/cartRoutes";
-import courseRoutes from "./routes/courseRoutes";
-import brandRoutes from "./routes/brandRoutes";
-import reviewRoutes from "./routes/reviewsRoutes";
-import dashboardRoutes from "./routes/dashboardRoutes";
-import searchRoutes from "./routes/searchRoutes";
+import currencyRouter from "./routes/currencyRoutes";
+import invoiceRouter from "./routes/invoiceRoutes";
+import locationRouter from "./routes/locationRoutes";
+import internalTransferRouter from "./routes/internalTransferRoutes";
+import itemRouter from "./routes/itemRoutes";
+import supplierRouter from "./routes/supplierRoutes";
+import shipmentRouter from "./routes/shipmentRoutes";
+import dashboardRouter from "./routes/dashboardRoutes";
+import reportRouter from "./routes/reportsRoutes";
+
+
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ CORS مضبوط
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "https://frontendh-production.up.railway.app",
+  origin: "http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "cookie"],
@@ -69,17 +69,16 @@ app.use(session({
 app.use("/resources", express.static(path.join(__dirname, "../resources")));
 
 // APIs
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/notification", notificationsRoutes);
-app.use("/api/category", categoryRoutes);
-app.use("/api/product", productRoutes);
-app.use("/api/brand", brandRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/course", courseRoutes);
-app.use("/api/review", reviewRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/search", searchRoutes);
+app.use("/api/currencies", currencyRouter);
+app.use("/api/invoices", invoiceRouter);
+app.use("/api/locations", locationRouter);
+app.use("/api/internalTransfers", internalTransferRouter);
+app.use("/api/items", itemRouter);
+app.use("/api/suppliers", supplierRouter);
+app.use("/api/shipments", shipmentRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/reports", reportRouter);
+
 
 app.use(notFound);
 app.use(errorHandler);
@@ -97,3 +96,4 @@ app.use(validateUUIDParam);
     process.exit(1);
   }
 })();
+  

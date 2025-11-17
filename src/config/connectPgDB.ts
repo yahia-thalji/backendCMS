@@ -1,18 +1,13 @@
 import { DataSource } from "typeorm";
-import { User } from "../entities/user";
-import { Role } from "../entities/role";
-import { Enrollments } from "../entities/enrollments";
-import { Assignmentsubmition } from "../entities/assignmentSubmition";
-import { Cart } from "../entities/cart";
-import { Notification } from "../entities/notification";
-import { Reviews } from "../entities/reviews";
-import { Resources } from "../entities/resources";
-import { CartItem } from "../entities/cartItem";
-import { Assignment } from "../entities/assignment";
-import { Course } from "../entities/course";
-import { Category } from "../entities/category";
-import { Product } from "../entities/product";
-import { Brand } from "../entities/brand";
+import { Currency } from "../entities/Currency"
+import { Item } from "../entities/Item";
+import { Invoice } from "../entities/Invoice";
+import { Shipment } from "../entities/Shipment";
+import { Supplier } from "../entities/Supplier";
+import { Location } from "../entities/Location";
+import { InternalTransfer } from "../entities/InternalTransfer";
+
+
 import 'dotenv/config';
 
 export const database = new DataSource({
@@ -24,11 +19,12 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'public',
+    schema: 'cms2025',
     // entities: [__dirname + "/../entities/**/*.ts"],
-    entities: [User , Role, Enrollments, Assignmentsubmition, Cart, Notification, Reviews, Resources, CartItem, Assignment, Course, Category, Product, Brand],
-    migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
-
+    entities: [Currency, Item, Invoice, Shipment, Supplier, Location, InternalTransfer],
+    // entities: [User , Role, Enrollments, Assignmentsubmition, Cart, Notification, Reviews, Resources, CartItem, Assignment, Course, Category, Product, Brand],
+    // migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
+    
     // entities: [,],
 });
 

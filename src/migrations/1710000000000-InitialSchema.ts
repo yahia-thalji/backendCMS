@@ -1,393 +1,171 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+// // src/migration/1710000000000-InitialSchema.ts
+// import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1710000000000 implements MigrationInterface {
-    name = 'InitialSchema1710000000000'
+// export class InitialSchema1710000000000 implements MigrationInterface {
+//     name = 'InitialSchema1710000000000'
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Create tables in dependency order
-        await queryRunner.query(`
-            CREATE TABLE "Role" (
-                "roleId" SERIAL PRIMARY KEY,
-                "roleName" VARCHAR NOT NULL DEFAULT 'user'
-            )
-        `);
+//     public async up(queryRunner: QueryRunner): Promise<void> {
+//         // تفعيل امتداد uuid-ossp أولاً
+//         await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
-        await queryRunner.query(`
-            CREATE TABLE "User" (
-                "UserID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                "firstName" VARCHAR(25) NOT NULL,
-                "lastName" VARCHAR(25) NOT NULL,
-                "email" VARCHAR(255) UNIQUE NOT NULL,
-                "phoneNumber" VARCHAR(12) UNIQUE NOT NULL,
-                "address" VARCHAR(100) NOT NULL,
-                "gender" VARCHAR NOT NULL CHECK ("gender" IN ('male', 'female')),
-                "dateOfBirth" DATE NOT NULL,
-                "password" VARCHAR(255) NOT NULL,
-                "resetCode" VARCHAR,
-                "resetCodeExpires" TIMESTAMP,
-                "resetCodeAttempts" INTEGER NOT NULL DEFAULT 0,
-                "loginAttempts" INTEGER NOT NULL DEFAULT 0,
-                "accountLockedUntil" TIMESTAMP,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "roleId" INTEGER
-            )
-        `);
+//         // إنشاء جدول العملات (currencies)
+//         await queryRunner.query(`
+//             CREATE TABLE "currencies" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "name" character varying NOT NULL,
+//                 "code" character varying NOT NULL,
+//                 "symbol" character varying NOT NULL,
+//                 "exchangeRate" numeric NOT NULL DEFAULT '1',
+//                 "isBase" boolean NOT NULL DEFAULT false,
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 CONSTRAINT "UQ_5b58560a2c3b5f21b4c672e52c7" UNIQUE ("code"),
+//                 CONSTRAINT "PK_2ec797f2cd6941e6d4d6d17b7f4" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Category" (
-                "categoryId" SERIAL PRIMARY KEY,
-                "name" VARCHAR UNIQUE NOT NULL,
-                "isActive" BOOLEAN NOT NULL DEFAULT true,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
-            )
-        `);
-        await queryRunner.query(`CREATE INDEX "name_index" ON "Category" ("name")`);
+//         // إنشاء جدول الموردين (suppliers)
+//         await queryRunner.query(`
+//             CREATE TABLE "suppliers" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "number" character varying NOT NULL,
+//                 "name" character varying NOT NULL,
+//                 "contactPerson" character varying,
+//                 "email" character varying,
+//                 "phone" character varying,
+//                 "address" character varying,
+//                 "country" character varying,
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 CONSTRAINT "UQ_97d41e4eec38b887408bacc6e11" UNIQUE ("number"),
+//                 CONSTRAINT "PK_b70ac51766a6e7a4d5c6d45d37f" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Brand" (
-                "brandId" SERIAL PRIMARY KEY,
-                "name" VARCHAR UNIQUE NOT NULL,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
-            )
-        `);
+//         // إنشاء جدول المواقع (locations)
+//         await queryRunner.query(`
+//             CREATE TABLE "locations" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "number" character varying NOT NULL,
+//                 "name" character varying NOT NULL,
+//                 "type" character varying NOT NULL,
+//                 "address" character varying,
+//                 "capacity" integer NOT NULL DEFAULT '0',
+//                 "currentUsage" integer NOT NULL DEFAULT '0',
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 CONSTRAINT "UQ_17e95947b892251ce7b4b5d86c5" UNIQUE ("number"),
+//                 CONSTRAINT "PK_7cc1c9e3853b94816c094825e74" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Course" (
-                "courseId" SERIAL PRIMARY KEY,
-                "courseTitle" VARCHAR NOT NULL,
-                "description" VARCHAR NOT NULL,
-                "startDate" DATE NOT NULL,
-                "duration" VARCHAR NOT NULL,
-                "instructor" VARCHAR NOT NULL,
-                "price" DECIMAL NOT NULL,
-                "newPrice" DECIMAL,
-                "status" VARCHAR NOT NULL CHECK ("status" IN ('open', 'close')),
-                "meetingLink" VARCHAR NOT NULL,
-                "AvgRating" INTEGER NOT NULL DEFAULT 0,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
-            )
-        `);
+//         // إنشاء جدول العناصر (items)
+//         await queryRunner.query(`
+//             CREATE TABLE "items" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "number" character varying NOT NULL,
+//                 "name" character varying NOT NULL,
+//                 "description" character varying,
+//                 "quantity" integer NOT NULL DEFAULT '0',
+//                 "unit" character varying NOT NULL,
+//                 "price" numeric NOT NULL DEFAULT '0',
+//                 "category" character varying,
+//                 "profitMargin" numeric,
+//                 "profitAmount" numeric,
+//                 "costPrice" numeric,
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "currencyId" uuid,
+//                 "locationId" uuid,
+//                 "supplierId" uuid,
+//                 CONSTRAINT "UQ_2c58e8b9e27e1eaa1e6d71d3f7e" UNIQUE ("number"),
+//                 CONSTRAINT "PK_ba5885359424c15ca6b9e79bcf6" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Product" (
-                "productId" SERIAL PRIMARY KEY,
-                "name" VARCHAR NOT NULL,
-                "description" VARCHAR NOT NULL,
-                "howToUse" VARCHAR,
-                "quantity" INTEGER NOT NULL,
-                "price" DECIMAL NOT NULL,
-                "newPrice" DECIMAL,
-                "status" VARCHAR NOT NULL CHECK ("status" IN ('out of stock', 'in stock', 'running low')) DEFAULT 'in stock',
-                "AvgRating" INTEGER NOT NULL DEFAULT 0,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "categoryId" INTEGER,
-                "brandId" INTEGER
-            )
-        `);
+//         // إنشاء جدول الفواتير (invoices)
+//         await queryRunner.query(`
+//             CREATE TABLE "invoices" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "number" character varying NOT NULL,
+//                 "issueDate" TIMESTAMP WITH TIME ZONE NOT NULL,
+//                 "dueDate" TIMESTAMP WITH TIME ZONE NOT NULL,
+//                 "totalAmount" numeric NOT NULL DEFAULT '0',
+//                 "status" character varying NOT NULL DEFAULT 'draft',
+//                 "notes" character varying,
+//                 "items" jsonb NOT NULL DEFAULT '[]',
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "supplierId" uuid,
+//                 "currencyId" uuid,
+//                 CONSTRAINT "UQ_0e98ce3edb65ae5d6d3f42d7c1e" UNIQUE ("number"),
+//                 CONSTRAINT "PK_6682f1e6eecb6668c0c8dcee632" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Resources" (
-                "resourceID" SERIAL PRIMARY KEY,
-                "entityName" VARCHAR NOT NULL,
-                "fileType" VARCHAR NOT NULL,
-                "filePath" VARCHAR NOT NULL,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID,
-                "productId" INTEGER,
-                "courseId" INTEGER,
-                "brandId" INTEGER
-            )
-        `);
+//         // إنشاء جدول الشحنات (shipments)
+//         await queryRunner.query(`
+//             CREATE TABLE "shipments" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "containerNumber" character varying NOT NULL,
+//                 "billOfLading" character varying NOT NULL,
+//                 "departureDate" TIMESTAMP WITH TIME ZONE NOT NULL,
+//                 "arrivalDate" TIMESTAMP WITH TIME ZONE,
+//                 "status" character varying NOT NULL DEFAULT 'pending',
+//                 "items" jsonb,
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "supplierId" uuid,
+//                 "currencyId" uuid,
+//                 CONSTRAINT "UQ_4c8d13b3e6d5a5e5e5e5e5e5e5e5" UNIQUE ("containerNumber"),
+//                 CONSTRAINT "PK_3aacf3810d7c6c7c7c7c7c7c7c7c" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Assignment" (
-                "assignmentId" SERIAL PRIMARY KEY,
-                "title" VARCHAR NOT NULL,
-                "subject" VARCHAR NOT NULL,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "courseId" INTEGER
-            )
-        `);
+//         // إنشاء جدول التحويلات الداخلية (internal_transfers)
+//         await queryRunner.query(`
+//             CREATE TABLE "internal_transfers" (
+//                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+//                 "transferNumber" character varying NOT NULL,
+//                 "transferDate" date NOT NULL DEFAULT CURRENT_DATE,
+//                 "status" character varying NOT NULL DEFAULT 'pending',
+//                 "items" jsonb NOT NULL DEFAULT '[]',
+//                 "notes" character varying,
+//                 "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+//                 "fromLocationId" uuid,
+//                 "toLocationId" uuid,
+//                 CONSTRAINT "UQ_9a6e6e6e6e6e6e6e6e6e6e6e6e6e" UNIQUE ("transferNumber"),
+//                 CONSTRAINT "PK_7a6e6e6e6e6e6e6e6e6e6e6e6e6e" PRIMARY KEY ("id")
+//             )
+//         `);
 
-        await queryRunner.query(`
-            CREATE TABLE "Reviews" (
-                "reviewID" SERIAL PRIMARY KEY,
-                "rating" INTEGER,
-                "comment" TEXT,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID
-            )
-        `);
+//         // إضافة العلاقات الخارجية (نفس الكود السابق)...
+//         // [نفس كود العلاقات الخارجية من الأعلى]
+//     }
 
-        await queryRunner.query(`
-            CREATE TABLE "Cart" (
-                "cartId" SERIAL PRIMARY KEY,
-                "orderTotalPrice" DECIMAL(10,2) NOT NULL,
-                "orderDiscountPrice" DECIMAL(10,2) NOT NULL,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID
-            )
-        `);
+//     public async down(queryRunner: QueryRunner): Promise<void> {
+//         // حذف جميع العلاقات الخارجية أولاً
+//         await queryRunner.query(`ALTER TABLE "internal_transfers" DROP CONSTRAINT "FK_be6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "internal_transfers" DROP CONSTRAINT "FK_ae6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "shipments" DROP CONSTRAINT "FK_9e6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "shipments" DROP CONSTRAINT "FK_8e6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "invoices" DROP CONSTRAINT "FK_7e6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "invoices" DROP CONSTRAINT "FK_6d6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "items" DROP CONSTRAINT "FK_5c6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "items" DROP CONSTRAINT "FK_4b6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
+//         await queryRunner.query(`ALTER TABLE "items" DROP CONSTRAINT "FK_3a6e6e6e6e6e6e6e6e6e6e6e6e6e"`);
 
-        await queryRunner.query(`
-            CREATE TABLE "Enrollments" (
-                "myCourseId" SERIAL PRIMARY KEY,
-                "status" VARCHAR NOT NULL CHECK ("status" IN ('accept', 'rejected', 'pending')) DEFAULT 'pending',
-                "expireDate" DATE,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID,
-                "courseId" INTEGER
-            )
-        `);
+//         // حذف الجداول
+//         await queryRunner.query(`DROP TABLE "internal_transfers"`);
+//         await queryRunner.query(`DROP TABLE "shipments"`);
+//         await queryRunner.query(`DROP TABLE "invoices"`);
+//         await queryRunner.query(`DROP TABLE "items"`);
+//         await queryRunner.query(`DROP TABLE "locations"`);
+//         await queryRunner.query(`DROP TABLE "suppliers"`);
+//         await queryRunner.query(`DROP TABLE "currencies"`);
 
-        await queryRunner.query(`
-            CREATE TABLE "Assignmentsubmition" (
-                "assignmentSubmitionId" SERIAL PRIMARY KEY,
-                "answer" VARCHAR NOT NULL,
-                "status" VARCHAR CHECK ("status" IN ('pass', 'fill')),
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID,
-                "assignmentId" INTEGER
-            )
-        `);
-
-        await queryRunner.query(`
-            CREATE TABLE "CartItem" (
-                "id" SERIAL PRIMARY KEY,
-                "quantity" INTEGER NOT NULL DEFAULT 1,
-                "status" VARCHAR NOT NULL CHECK ("status" IN ('inCart','pending','accept','rejected')) DEFAULT 'inCart',
-                "deliveredAt" TIMESTAMP,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "userId" UUID,
-                "cartId" INTEGER,
-                "productId" INTEGER
-            )
-        `);
-
-        await queryRunner.query(`
-            CREATE TABLE "Notification" (
-                "notificationId" SERIAL PRIMARY KEY,
-                "messageTitle" VARCHAR NOT NULL,
-                "type" VARCHAR NOT NULL,
-                "read" BOOLEAN NOT NULL DEFAULT false,
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-                "fromId" UUID,
-                "toId" UUID
-            )
-        `);
-
-        // Create junction tables for many-to-many relationships
-        await queryRunner.query(`
-            CREATE TABLE "CourseReviews" (
-                "courseId" INTEGER NOT NULL,
-                "reviewID" INTEGER NOT NULL,
-                CONSTRAINT "PK_CourseReviews" PRIMARY KEY ("courseId", "reviewID")
-            )
-        `);
-
-        await queryRunner.query(`
-            CREATE TABLE "ProductsReviews" (
-                "productId" INTEGER NOT NULL,
-                "reviewID" INTEGER NOT NULL,
-                CONSTRAINT "PK_ProductsReviews" PRIMARY KEY ("productId", "reviewID")
-            )
-        `);
-
-        // Add foreign key constraints
-        await queryRunner.query(`
-            ALTER TABLE "User"
-            ADD CONSTRAINT "FK_User_Role" FOREIGN KEY ("roleId")
-            REFERENCES "Role"("roleId") ON DELETE SET NULL
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Product"
-            ADD CONSTRAINT "FK_Product_Category" FOREIGN KEY ("categoryId")
-            REFERENCES "Category"("categoryId") ON DELETE SET NULL
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Product"
-            ADD CONSTRAINT "FK_Product_Brand" FOREIGN KEY ("brandId")
-            REFERENCES "Brand"("brandId") ON DELETE SET NULL
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Resources"
-            ADD CONSTRAINT "FK_Resources_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Resources"
-            ADD CONSTRAINT "FK_Resources_Product" FOREIGN KEY ("productId")
-            REFERENCES "Product"("productId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Resources"
-            ADD CONSTRAINT "FK_Resources_Course" FOREIGN KEY ("courseId")
-            REFERENCES "Course"("courseId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Resources"
-            ADD CONSTRAINT "FK_Resources_Brand" FOREIGN KEY ("brandId")
-            REFERENCES "Brand"("brandId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Assignment"
-            ADD CONSTRAINT "FK_Assignment_Course" FOREIGN KEY ("courseId")
-            REFERENCES "Course"("courseId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Reviews"
-            ADD CONSTRAINT "FK_Reviews_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE SET NULL
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Cart"
-            ADD CONSTRAINT "FK_Cart_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Enrollments"
-            ADD CONSTRAINT "FK_Enrollments_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Enrollments"
-            ADD CONSTRAINT "FK_Enrollments_Course" FOREIGN KEY ("courseId")
-            REFERENCES "Course"("courseId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Assignmentsubmition"
-            ADD CONSTRAINT "FK_Submition_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Assignmentsubmition"
-            ADD CONSTRAINT "FK_Submition_Assignment" FOREIGN KEY ("assignmentId")
-            REFERENCES "Assignment"("assignmentId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "CartItem"
-            ADD CONSTRAINT "FK_CartItem_User" FOREIGN KEY ("userId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "CartItem"
-            ADD CONSTRAINT "FK_CartItem_Cart" FOREIGN KEY ("cartId")
-            REFERENCES "Cart"("cartId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "CartItem"
-            ADD CONSTRAINT "FK_CartItem_Product" FOREIGN KEY ("productId")
-            REFERENCES "Product"("productId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Notification"
-            ADD CONSTRAINT "FK_Notification_FromUser" FOREIGN KEY ("fromId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "Notification"
-            ADD CONSTRAINT "FK_Notification_ToUser" FOREIGN KEY ("toId")
-            REFERENCES "User"("UserID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "CourseReviews"
-            ADD CONSTRAINT "FK_CourseReviews_Course" FOREIGN KEY ("courseId")
-            REFERENCES "Course"("courseId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "CourseReviews"
-            ADD CONSTRAINT "FK_CourseReviews_Review" FOREIGN KEY ("reviewID")
-            REFERENCES "Reviews"("reviewID") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "ProductsReviews"
-            ADD CONSTRAINT "FK_ProductsReviews_Product" FOREIGN KEY ("productId")
-            REFERENCES "Product"("productId") ON DELETE CASCADE
-        `);
-
-        await queryRunner.query(`
-            ALTER TABLE "ProductsReviews"
-            ADD CONSTRAINT "FK_ProductsReviews_Review" FOREIGN KEY ("reviewID")
-            REFERENCES "Reviews"("reviewID") ON DELETE CASCADE
-        `);
-    }
-
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // Drop foreign keys first
-        await queryRunner.query(`ALTER TABLE "User" DROP CONSTRAINT "FK_User_Role"`);
-        await queryRunner.query(`ALTER TABLE "Product" DROP CONSTRAINT "FK_Product_Category"`);
-        await queryRunner.query(`ALTER TABLE "Product" DROP CONSTRAINT "FK_Product_Brand"`);
-        await queryRunner.query(`ALTER TABLE "Resources" DROP CONSTRAINT "FK_Resources_User"`);
-        await queryRunner.query(`ALTER TABLE "Resources" DROP CONSTRAINT "FK_Resources_Product"`);
-        await queryRunner.query(`ALTER TABLE "Resources" DROP CONSTRAINT "FK_Resources_Course"`);
-        await queryRunner.query(`ALTER TABLE "Resources" DROP CONSTRAINT "FK_Resources_Brand"`);
-        await queryRunner.query(`ALTER TABLE "Assignment" DROP CONSTRAINT "FK_Assignment_Course"`);
-        await queryRunner.query(`ALTER TABLE "Reviews" DROP CONSTRAINT "FK_Reviews_User"`);
-        await queryRunner.query(`ALTER TABLE "Cart" DROP CONSTRAINT "FK_Cart_User"`);
-        await queryRunner.query(`ALTER TABLE "Enrollments" DROP CONSTRAINT "FK_Enrollments_User"`);
-        await queryRunner.query(`ALTER TABLE "Enrollments" DROP CONSTRAINT "FK_Enrollments_Course"`);
-        await queryRunner.query(`ALTER TABLE "Assignmentsubmition" DROP CONSTRAINT "FK_Submition_User"`);
-        await queryRunner.query(`ALTER TABLE "Assignmentsubmition" DROP CONSTRAINT "FK_Submition_Assignment"`);
-        await queryRunner.query(`ALTER TABLE "CartItem" DROP CONSTRAINT "FK_CartItem_User"`);
-        await queryRunner.query(`ALTER TABLE "CartItem" DROP CONSTRAINT "FK_CartItem_Cart"`);
-        await queryRunner.query(`ALTER TABLE "CartItem" DROP CONSTRAINT "FK_CartItem_Product"`);
-        await queryRunner.query(`ALTER TABLE "Notification" DROP CONSTRAINT "FK_Notification_FromUser"`);
-        await queryRunner.query(`ALTER TABLE "Notification" DROP CONSTRAINT "FK_Notification_ToUser"`);
-        await queryRunner.query(`ALTER TABLE "CourseReviews" DROP CONSTRAINT "FK_CourseReviews_Course"`);
-        await queryRunner.query(`ALTER TABLE "CourseReviews" DROP CONSTRAINT "FK_CourseReviews_Review"`);
-        await queryRunner.query(`ALTER TABLE "ProductsReviews" DROP CONSTRAINT "FK_ProductsReviews_Product"`);
-        await queryRunner.query(`ALTER TABLE "ProductsReviews" DROP CONSTRAINT "FK_ProductsReviews_Review"`);
-
-        // Drop tables in reverse order
-        await queryRunner.query(`DROP TABLE "ProductsReviews"`);
-        await queryRunner.query(`DROP TABLE "CourseReviews"`);
-        await queryRunner.query(`DROP TABLE "Notification"`);
-        await queryRunner.query(`DROP TABLE "CartItem"`);
-        await queryRunner.query(`DROP TABLE "Assignmentsubmition"`);
-        await queryRunner.query(`DROP TABLE "Enrollments"`);
-        await queryRunner.query(`DROP TABLE "Cart"`);
-        await queryRunner.query(`DROP TABLE "Reviews"`);
-        await queryRunner.query(`DROP TABLE "Assignment"`);
-        await queryRunner.query(`DROP TABLE "Resources"`);
-        await queryRunner.query(`DROP TABLE "Product"`);
-        await queryRunner.query(`DROP TABLE "Course"`);
-        await queryRunner.query(`DROP TABLE "Brand"`);
-        await queryRunner.query(`DROP TABLE "Category"`);
-        await queryRunner.query(`DROP TABLE "User"`);
-        await queryRunner.query(`DROP TABLE "Role"`);
-    }
-}
+//         // إزالة الامتداد (اختياري)
+//         await queryRunner.query(`DROP EXTENSION IF EXISTS "uuid-ossp"`);
+//     }
+// }
