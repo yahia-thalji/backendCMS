@@ -20,10 +20,8 @@ export const database = new DataSource({
     logging: false,
     synchronize: true,
     schema: 'cms2025',
-    // entities: [__dirname + "/../entities/**/*.ts"],
     entities: [Currency, Item, Invoice, Shipment, Supplier, Location, InternalTransfer],
-    // entities: [User , Role, Enrollments, Assignmentsubmition, Cart, Notification, Reviews, Resources, CartItem, Assignment, Course, Category, Product, Brand],
-    // migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
+    migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
     
     // entities: [,],
 });
@@ -38,34 +36,3 @@ export const initializeDB = async () => {
 };
 
 
-
-// import { DataSource } from "typeorm";
-// import 'dotenv/config';
-
-// export const database = new DataSource({
-//   type: 'postgres',
-//   url: process.env.DATABASE_URL,
-//   ssl: process.env.NODE_ENV === 'production'
-//     ? { rejectUnauthorized: false }
-//     : false,
-//   logging: false,
-//   synchronize: process.env.NODE_ENV !== 'production',
-//   schema: process.env.DATABASE_SCHEMA || 'public',
-//   entities: [__dirname + "/../entities/**/*{.ts,.js}"],
-//   migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  // ← إضافة مسار المايجريشن
-// });
-
-// let isInitialized = false;
-
-// export const initializeDB = async () => {
-//   if (!isInitialized) {
-//     try {
-//       await database.initialize();
-//       console.log('✅ Database initialized successfully');
-//     } catch (err: any) {
-//       console.error('❌ Database initialization failed:', err);
-//       throw err;
-//     }
-//   }
-//   return database;
-// };
