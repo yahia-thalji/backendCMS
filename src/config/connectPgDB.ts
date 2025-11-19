@@ -19,7 +19,7 @@ export const database = new DataSource({
     database: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
-    schema: 'cms2025',
+    schema: 'public',
     entities: [Currency, Item, Invoice, Shipment, Supplier, Location, InternalTransfer],
     migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],  
     

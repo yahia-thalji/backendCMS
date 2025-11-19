@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "migrate": "typeorm-ts-node-commonjs migration:run -d src/config/connectPgDB.ts",
-    "start": "npm run build && npm run migrate && node dist/index.js"
+    "migrate": "typeorm-ts-node-commonjs migration:run -d dist/config/connectPgDB.js",
+    "start": "node dist/index.js",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
