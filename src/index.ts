@@ -30,12 +30,14 @@ const port = process.env.PORT || 8080;
 
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "frontendcms-production.up.railway.app",
+  origin: [
+    "https://frontendcms-production.up.railway.app",
+    "http://localhost:5173"
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "cookie"],
-  exposedHeaders: ["set-cookie"] 
-
+  exposedHeaders: ["set-cookie"]
 }));
 
 app.use(cookieParser());
